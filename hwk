@@ -1,0 +1,85 @@
+#!/usr/bin/ruby 
+#-rtracer
+#
+#
+
+require 'date'
+require 'homework'
+
+
+def title( t )
+  Homework.instance.title = t
+end
+
+def due_date( d )
+  Homework.instance.due_date = d
+end
+
+def class_name( c )
+  Homework.instance.class_name = c
+end
+
+def class_time( ct )
+  Homework.instance.class_time = ct
+end
+
+def author_name( an )
+  Homework.instance.author_name = an
+end
+
+def class_professor( cp )
+  Homework.instance.class_professor = cp
+end
+
+def add( problem )
+  Homework.instance.add_problem( problem )
+end
+
+
+template_dir = "~/Dropbox/Maths/latex/templating/"
+template_file = "homework_template.tex"
+#template_file = "test.tex"
+
+if ARGV.length < 1
+  abort( "No homework file specified" )
+end
+
+hwk_dsl = ARGV[0]
+
+begin
+  load hwk_dsl
+rescue StandardError => error
+  location = error.backtrace[0].split(':')[0..1].join(':')
+  msg = error.message
+  if ( msg.scan(/undefined method/) )
+    #msg = "Unrecognized command: #{msg.split[2]}"
+  end
+  abort( "Error at #{location}: #{msg}" )
+rescue SyntaxError => error
+  location = error.backtrace[0].split(':')[0..1].join(':')
+  msg = error.message
+  if ( msg.scan(/syntax error/) )
+    #msg = "Syntax error: #{msg.split[2]}"
+  end
+  abort( "Syntax error at #{location}: #{msg}" )
+end
+
+tex = Homework.instance.parse_template( template_dir + template_file )
+
+output_name = hwk_dsl.split('.')[0..-2].join('.') + ".tex"
+output_file = File.open( output_name, "w" )
+output_file.write( tex )
+output_file.close
+
+result = system( "pdflatex -interaction=batchmode #{output_name} >& pdflatex.log" )
+
+if ( result == false )
+  puts "Error generating PDF from tex file"
+else
+  puts "Success!  Reopening file!"
+  system( "open #{output_name.split('.')[0..-2].join('.') + '.pdf'}" )
+end
+
+
+
+
