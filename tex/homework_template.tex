@@ -8,12 +8,8 @@
 % Modified by:
 %  Colby Gutierrez-Kraybill
 %
-% Original author:
+% Original template author:
 % Ted Pavlic (http://www.tedpavlic.com)
-%
-% This template uses a Perl script as an example snippet of code, most other
-% languages are also usable. Configure them in the "CODE INCLUSION 
-% CONFIGURATION" section.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -32,6 +28,7 @@
 \usepackage{courier} % Required for the courier font
 \usepackage{enumitem} % used to alter style of enumerations
 \usepackage{lipsum} % used to alter style of enumerations
+\usepackage{varwidth} % used to alter style of enumerations
 \usepackage{Baskervaldx}
 
 % Margins
@@ -102,7 +99,7 @@ HWK_CODE_INCLUSION_CONFIGURATION_HWK
 }
 
 \newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
-\noindent\framebox[\columnwidth][c]{\begin{minipage}{0.98\columnwidth}#1\end{minipage}} % Makes the box around the problem answer and puts the content inside
+\noindent\fbox{\begin{varwidth}{\columnwidth}Solution:\end{varwidth}}\par#1 % Makes the box around the problem answer and puts the content inside
 }
 
 \newcommand{\homeworkSectionName}{}
