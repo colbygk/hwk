@@ -4,51 +4,87 @@
 #
 
 require 'date'
-require 'homework'
+require 'hwk'
+require 'hwk/hwkfiles'
 
+include Hwk
 
-def title( t )
-  Homework.instance.title = t
+if ARGV.length < 1 or ARGV[0] == '-h'
+  puts
+  puts( "usage: [-n name] [open|edit|pdf]")
+  puts( "\t-n name\t Create a new name.hwk file, prepopulated")
+  puts( "\topen\t Open local .pdf file based on .hwk file.")
+  puts( "\topen\t Edit local .hwk file, currenlty only one.")
+  puts( "\topen\t Generate and open pdf from local .hwk file.")
+  puts
+  exit(true)
 end
 
-def due_date( d )
-  Homework.instance.due_date = d
+valid_commands = ['open','edit','pdf']
+hwk = nil
+
+if ARGV.length > 1 and valid_commands.include?(ARGV[0])
+  hwk = Homework.new( ARGV[1] )
+  if hwk.files.dsl.nil?
+    puts( "Did not find a hwk file in: #{ARGV[1]}" )
+    exit(false)
+  end
+else
+  hwk = Homework.new( '.' )
 end
 
-def class_name( c )
-  Homework.instance.class_name = c
+if ARGV[0] == "-n"
+  if ARGV.length < 2
+    abort( " -n requires filename" )
+  else
+    target = ARGV[1]+'.'+EXTNAME
+    source = File.expand_path(File.join(TEMPLATE_DIR,NEW_HWK_FILE))
+
+    result = system( "cp #{source} #{target}" );
+    if result == false
+      abort("Error copying new hwk template #{source} to #{target}: #{$?}")
+    end
+    exit(true)
+  end
+elsif ARGV[0] == "open"
+  if hwk.files.pdf.exists?
+    status = system( "open #{hwk.files.pdf}" );
+    if status == nil || (status && status != true )
+      abort("Error editing: #{$?}")
+    end
+    exit(true)
+  else
+    abort("No pdf to open: #{hwk.files.pdf}")
+  end
+elsif ARGV[0] == "edit"
+  editor = ENV['EDITOR']
+  editor = 'vi' if editor.nil?
+
+  if hwk.files.dsl.exists?
+    status = system( "#{editor} #{hwk.files.dsl}" );
+    if status == nil || (status && status != true )
+      abort("Error editing: #{$?}")
+    end
+    exit(true)
+  else
+    abort("No hwk file to open: #{hwk.files.dsl}")
+  end
+elsif ARGV[0] == 'pdf'
+  # pass thru to default behavior
 end
 
-def class_time( ct )
-  Homework.instance.class_time = ct
-end
+puts "Working on #{hwk.files.dsl}"
 
-def author_name( an )
-  Homework.instance.author_name = an
-end
+#set_trace_func proc{ |event, file, line, id, binding, classname|
+#    printf("%8s %s:%-2d %10s %8s\n", event, file, line, id, classname) #if file =~ /my_app_name/ and event == 'return' #show only interesting files
+#}
 
-def class_professor( cp )
-  Homework.instance.class_professor = cp
-end
-
-def add( problem )
-  Homework.instance.add_problem( problem )
-end
-
-
-template_dir = "~/Dropbox/Maths/latex/templating/"
-template_file = "homework_template.tex"
-#template_file = "test.tex"
-
-if ARGV.length < 1
-  abort( "No homework file specified" )
-end
-
-hwk_dsl = ARGV[0]
 
 begin
-  load hwk_dsl
+  hwk.load
+  hwk.write_tex
 rescue StandardError => error
+  puts error.backtrace
   location = error.backtrace[0].split(':')[0..1].join(':')
   msg = error.message
   if ( msg.scan(/undefined method/) )
@@ -64,20 +100,39 @@ rescue SyntaxError => error
   abort( "Syntax error at #{location}: #{msg}" )
 end
 
-tex = Homework.instance.parse_template( template_dir + template_file )
+# Clear off any old biblio files
+if hwk.files.bbl.exists?
+  File.delete hwk.files.bbl
+end
 
-output_name = hwk_dsl.split('.')[0..-2].join('.') + ".tex"
-output_file = File.open( output_name, "w" )
-output_file.write( tex )
-output_file.close
+result = nil
+if hwk.files.tex.exists?
+  result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+end
 
-result = system( "pdflatex -interaction=batchmode #{output_name} >& pdflatex.log" )
+if result && hwk.parser.bibliography?
+  if hwk.files.aux.exists?
+    puts "  Generate biblio from #{hwk.files.aux}"
+    result = system( "bibtex #{hwk.files.aux} >& bibtex.log" )
+    if result
+      puts "  Re-run latex"
+      result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+      if result
+        result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+      end
+    end
+  else
+    abort( "Expected #{hwk.files.aux} to exist for bibliography, but it's missing!" )
+  end
+end
 
 if ( result == false )
-  puts "Error generating PDF from tex file"
+  puts "Error generating PDF from tex file: #{$?}"
 else
   puts "Success!  Reopening file!"
-  system( "open #{output_name.split('.')[0..-2].join('.') + '.pdf'}" )
+  if hwk.files.pdf.exists?
+    system( "open #{hwk.files.pdf}" )
+  end
 end
 
 

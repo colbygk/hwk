@@ -17,7 +17,7 @@
 %	PACKAGES AND OTHER DOCUMENT CONFIGURATIONS
 %----------------------------------------------------------------------------------------
 
-\documentclass{article}
+\documentclass[fleqn,twoside]{article}
 
 \usepackage{fancyhdr} % Required for custom headers
 \usepackage{lastpage} % Required to determine the last page for the footer
@@ -29,7 +29,11 @@
 \usepackage{enumitem} % used to alter style of enumerations
 \usepackage{lipsum} % used to alter style of enumerations
 \usepackage{varwidth} % used to alter style of enumerations
+\usepackage{amsmath,amssymb} % used to alter style of enumerations
+\usepackage[colorlinks=true,pagebackref=true,linkcolor=blue]{hyperref}
+\usepackage{wrapfig}
 \usepackage{Baskervaldx}
+
 
 % Margins
 \topmargin=-0.45in
@@ -43,30 +47,23 @@
 
 % Set up the header and footer
 \pagestyle{fancy}
-\lhead{\hmwkAuthorName} % Top left header
-\chead{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle} % Top center head
-\rhead{\firstxmark} % Top right header
-\lfoot{\lastxmark} % Bottom left footer
-\cfoot{} % Bottom center footer
-\rfoot{Page\ \thepage\ of\ \protect\pageref{LastPage}} % Bottom right footer
+\fancyhead{}
+\fancyhead[RO,LE]{\hmwkAuthorName} % Top left header
+\fancyhead[C]{\hmwkClass\ (\hmwkClassInstructor\ \hmwkClassTime): \hmwkTitle} % Top center head
+\fancyhead[RE,LO]{\firstxmark} % Top right header
+\fancyfoot{}
+\fancyfoot[RO,LE]{Page\ \thepage\ of\ \protect\pageref{LastPage}}
+\fancyfoot[RE,LO]{\lastxmark} % Bottom left footer
 \renewcommand\headrulewidth{0.4pt} % Size of the header rule
 \renewcommand\footrulewidth{0.4pt} % Size of the footer rule
 
-\setlength\parindent{0pt} % Removes all indentation from paragraphs
+\setlength\parindent{1em} \hangindent=1em
 
 %----------------------------------------------------------------------------------------
 %	CODE INCLUSION CONFIGURATION
 %----------------------------------------------------------------------------------------
 
-HWK_CODE_INCLUSION_CONFIGURATION_HWK
-
-% Creates a new command to include a perl script, the first parameter is the filename of
-%  the script (without .pl), the second parameter is the caption
-\newcommand{\perlscript}[2]{
-\begin{itemize}
-\item[]\lstinputlisting[caption=#2,label=#1]{#1.pl}
-\end{itemize}
-}
+HWK_LANGUAGE_CONFIGS_HWK
 
 %----------------------------------------------------------------------------------------
 %	DOCUMENT STRUCTURE COMMANDS
@@ -78,6 +75,10 @@ HWK_CODE_INCLUSION_CONFIGURATION_HWK
 \nobreak\extramarks{#1}{#1 continued on next page\ldots}\nobreak
 \nobreak\extramarks{#1 (continued)}{#1 continued on next page\ldots}\nobreak
 }
+
+\newenvironment{smashedalign}
+ {\par$\!\aligned}
+  {\endaligned$\par}
 
 % Header and footer for when a page split occurs between problem environments
 \newcommand{\exitProblemHeader}[1]{
@@ -141,6 +142,7 @@ HWK_CODE_INCLUSION_CONFIGURATION_HWK
 
 \begin{document}
 
+
 \maketitle
 
 %----------------------------------------------------------------------------------------
@@ -155,11 +157,19 @@ HWK_CODE_INCLUSION_CONFIGURATION_HWK
 %\newpage
 
 %----------------------------------------------------------------------------------------
-%	PROBLEMS LOOP
+%	QUESTIONS LOOP
 %----------------------------------------------------------------------------------------
 
-HWK_PROBLEMS_LOOP_HWK
+HWK_QUESTIONS_LOOP_HWK
 
 %----------------------------------------------------------------------------------------
+
+%----------------------------------------------------------------------------------------
+%	BIBLIO INCLUSION CONFIGURATION
+%----------------------------------------------------------------------------------------
+
+\bibliographystyle{HWK_BIBLIOGRAPHYSTYLE_HWK}
+HWK_BIBLIO_CONFIG_HWK
+
 
 \end{document}
