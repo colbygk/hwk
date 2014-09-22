@@ -36,13 +36,13 @@ module Hwk
 
       hwks = Dir.glob( File.join(directory,'*.'+EXTNAME) )
       hwks.each do |hwk|
-        @dsl = hwk
+        @dsl = HwkFileString.new( hwk )
       end
       if dsl
         @tex = HwkFileString.new( dsl.gsub(/\.#{EXTNAME}/,'.tex' ) )
-        @pdf = HwkFileString.new dsl.gsub(/\.#{EXTNAME}/,'.pdf' ) 
-        @aux = HwkFileString.new dsl.gsub(/\.#{EXTNAME}/,'.aux' ) 
-        @bbl = HwkFileString.new dsl.gsub(/\.#{EXTNAME}/,'.bbl' ) 
+        @pdf = HwkFileString.new(dsl.gsub(/\.#{EXTNAME}/,'.pdf' ) )
+        @aux = HwkFileString.new(dsl.gsub(/\.#{EXTNAME}/,'.aux' ) )
+        @bbl = HwkFileString.new(dsl.gsub(/\.#{EXTNAME}/,'.bbl' ) )
       end
     end
 

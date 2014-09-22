@@ -14,12 +14,15 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   puts( "usage: [-n name] [open|edit|pdf]")
   puts( "\t-n name\t Create a new name.hwk file, prepopulated")
   puts( "\topen\t Open local .pdf file based on .hwk file.")
-  puts( "\topen\t Edit local .hwk file, currenlty only one.")
-  puts( "\topen\t Generate and open pdf from local .hwk file.")
+  puts( "\tedit\t Edit local .hwk file, currenlty only one.")
+  puts( "\tpdf\t Generate and open pdf from local .hwk file.")
+  puts( "\thwk\t Edit the hwk binary or some other specified library file.")
   puts
   exit(true)
 end
 
+editor = ENV['EDITOR']
+editor = 'vi' if editor.nil?
 valid_commands = ['open','edit','pdf']
 hwk = nil
 
@@ -48,20 +51,18 @@ if ARGV[0] == "-n"
   end
 elsif ARGV[0] == "open"
   if hwk.files.pdf.exists?
-    status = system( "open #{hwk.files.pdf}" );
+    status = system( "open \"#{hwk.files.pdf}\"" );
     if status == nil || (status && status != true )
-      abort("Error editing: #{$?}")
+      abort("Error opening: #{$?}")
     end
     exit(true)
   else
     abort("No pdf to open: #{hwk.files.pdf}")
   end
 elsif ARGV[0] == "edit"
-  editor = ENV['EDITOR']
-  editor = 'vi' if editor.nil?
 
   if hwk.files.dsl.exists?
-    status = system( "#{editor} #{hwk.files.dsl}" );
+    status = system( "#{editor} \"#{hwk.files.dsl}\"" );
     if status == nil || (status && status != true )
       abort("Error editing: #{$?}")
     end
@@ -69,8 +70,23 @@ elsif ARGV[0] == "edit"
   else
     abort("No hwk file to open: #{hwk.files.dsl}")
   end
+elsif ARGV[0] == 'hwk'
+  if ARGV[1].nil?
+    hwk_file = HWK_DIR + '/bin/hwk'
+  else
+    hwk_file = HWK_DIR + '/' + ARGV[1]
+  end
+  status = system( "#{editor} \"#{File.expand_path(hwk_file)}\"" )
+  if status == nil || (status && status != true )
+    abort("Error editing: #{$?}")
+  end
+  exit(true)
 elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
+end
+
+if hwk.files.dsl.nil? || hwk.files.dsl.exists? == false
+  abort( "Now homework found here" )
 end
 
 puts "Working on #{hwk.files.dsl}"
@@ -107,18 +123,18 @@ end
 
 result = nil
 if hwk.files.tex.exists?
-  result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+  result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
 end
 
 if result && hwk.parser.bibliography?
   if hwk.files.aux.exists?
     puts "  Generate biblio from #{hwk.files.aux}"
-    result = system( "bibtex #{hwk.files.aux} >& bibtex.log" )
+    result = system( "bibtex \"#{hwk.files.aux}\" >& bibtex.log" )
     if result
       puts "  Re-run latex"
-      result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+      result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
       if result
-        result = system( "pdflatex -interaction=batchmode #{hwk.files.tex} >& pdflatex.log" )
+        result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
       end
     end
   else
@@ -131,7 +147,7 @@ if ( result == false )
 else
   puts "Success!  Reopening file!"
   if hwk.files.pdf.exists?
-    system( "open #{hwk.files.pdf}" )
+    system( "open \"#{hwk.files.pdf}\"" )
   end
 end
 

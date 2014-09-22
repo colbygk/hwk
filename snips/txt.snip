@@ -1,0 +1,36 @@
+\definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
+\lstloadlanguages{bash} % Load txt syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
+\lstset{language=bash, % Use bash in this example
+        frame=single, % Single frame around code
+        basicstyle=\scriptsize\ttfamily, % Use small true type font
+        keywordstyle=[1]\color{Black}\bf, % txt functions bold and blue
+        keywordstyle=[2]\color{Black}, % txt function arguments purple
+        keywordstyle=[3]\color{Black}\underbar, % Custom functions underlined and blue
+        identifierstyle=, % Nothing special about identifiers                                         
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{Black}\scriptsize, % Comments small dark green courier font
+        stringstyle=\color{Black}, % Strings are black
+        showstringspaces=false, % Don't put marks in string spaces
+        tabsize=5, % 5 spaces per tab
+        %
+        % Put standard txt functions not included in the default language here
+        morekeywords={rand},
+        %
+        % Put txt function parameters here
+        morekeywords=[2]{on, off, interp},
+        %
+        % Put user defined functions here
+        morekeywords=[3]{test},
+        %
+        morecomment=[l][\color{Black}]{...}, % Line continuation (...) like blue comment
+        numbers=left, % Line numbers on left
+        firstnumber=1, % Line numbers start with line 1
+        numberstyle=\scriptsize\color{Blue}, % Line numbers are blue and small
+        stepnumber=5 % Line numbers go in steps of 5
+}
+
+% Creates a new command to include a txt script, the first parameter is the filename of the script (without .txt), the second parameter is the caption
+\newcommand{\txtscript}[2]{
+\begin{itemize}
+\item[]\lstinputlisting[caption=#2,label=#1]{#1.txt}
+\end{itemize}
+}

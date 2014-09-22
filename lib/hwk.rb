@@ -7,8 +7,10 @@ require 'hwk/hwkfiles'
 require 'hwk/parser'
 
 module Hwk
+  VERSION = '0.0.2'
   EXTNAME = 'hwk'
-  TEMPLATE_DIR = "~/Dropbox/Maths/latex/hwk/tex/"
+  HWK_DIR = "~/Dropbox/Maths/latex/hwk/"
+  TEMPLATE_DIR = HWK_DIR + "tex/"
   TEMPLATE_FILE = "homework_template.tex"
   FQP_TEMPLATE_FILE = File.join(TEMPLATE_DIR,TEMPLATE_FILE)
   NEW_HWK_FILE  = "template.hwk"

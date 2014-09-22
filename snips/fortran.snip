@@ -1,21 +1,21 @@
 \definecolor{MyDarkGreen}{rgb}{0.0,0.4,0.0} % This is the color used for comments
-\lstloadlanguages{c} % Load C syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
-\lstset{language=c, % Use C in this example
+\lstloadlanguages{Fortran} % Load Fortran syntax for listings, for a list of other languages supported see: ftp://ftp.tex.ac.uk/tex-archive/macros/latex/contrib/listings/listings.pdf
+\lstset{language=Fortran, % Use Fortran in this example
         frame=single, % Single frame around code
-        basicstyle=\scriptsize\ttfamily, % Use small true type font
-        keywordstyle=[1]\color{Blue}\bf, % C functions bold and blue
-        keywordstyle=[2]\color{Purple}, % C function arguments purple
+        basicstyle=\small\ttfamily, % Use small true type font
+        keywordstyle=[1]\color{Blue}\bf, % Fortran functions bold and blue
+        keywordstyle=[2]\color{Purple}, % Fortran function arguments purple
         keywordstyle=[3]\color{Blue}\underbar, % Custom functions underlined and blue
         identifierstyle=, % Nothing special about identifiers                                         
-        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\scriptsize, % Comments small dark green courier font
+        commentstyle=\usefont{T1}{pcr}{m}{sl}\color{MyDarkGreen}\small, % Comments small dark green courier font
         stringstyle=\color{Purple}, % Strings are purple
         showstringspaces=false, % Don't put marks in string spaces
         tabsize=5, % 5 spaces per tab
         %
-        % Put standard C functions not included in the default language here
+        % Put standard Fortran functions not included in the default language here
         morekeywords={rand},
         %
-        % Put C function parameters here
+        % Put Fortran function parameters here
         morekeywords=[2]{on, off, interp},
         %
         % Put user defined functions here
@@ -28,9 +28,9 @@
         stepnumber=5 % Line numbers go in steps of 5
 }
 
-% Creates a new command to include a C source file, the first parameter is the filename of the script (without .c), the second parameter is the caption
-\newcommand{\cscript}[2]{
+% Creates a new command to include a Fortran script, the first parameter is the filename of the script (without .m), the second parameter is the caption
+\newcommand{\fortranscript}[2]{
 \begin{itemize}
-\item[]\lstinputlisting[caption=#2,label=#1]{#1.c}
+\item[]\lstinputlisting[caption=#2,label=#1]{#1.m}
 \end{itemize}
 }

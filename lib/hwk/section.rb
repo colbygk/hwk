@@ -1,20 +1,23 @@
 
 # yoinked from: http://raycodingdotnet.wordpress.com/2013/08/11/writing-domain-specific-langaugedsl-in-ruby-day-1/
 
+require 'hwk/includable'
 
 module Hwk
 
-  class Section
+  class Section < Includable
     attr_accessor :im_a_part
-    [:enumstyle, :section_title, :text,:solution, :parts].each do |m|
+    [:prefix, :suffix, :enumstyle, :title, :text,:solution, :parts].each do |m|
       self.class_eval( %Q\
-        def #{m}(param=nil,&block)
-           param.nil?  ? (return @#{m}) : (@#{m} = param)
+        def #{m}(*param,&block)
+           param.nil?  ? (return @#{m}) : (@#{m} = param.join )
            (instance_eval &block) if block_given?
         end
                       \ )
 
-      def initialize( s, &block )
+      def initialize( *s, &block )
+        super(s,&block)
+
         @enumstyle = '\alph'
         @im_a_part = nil
         call_stack = caller(2)
@@ -22,13 +25,14 @@ module Hwk
           @im_a_part = call_stack[0].scan(/`(\S+)'/)[0][0]
         end
 
-        @text = s
+        @title = s[0] unless s.nil?
+        @text = s[1..-1].join unless s[1..-1].nil?
         @parts = []
         (block.arity < 1 ?  (instance_eval &block) : block.call(self)) if block_given?
       end
 
-      def part( s, &block )
-        @parts << Section.new( s, &block )
+      def part( *s, &block )
+        @parts << Section.new( *s, &block )
       end
 
       def to_s
@@ -40,7 +44,7 @@ module Hwk
       end
 
       def to_s_part_section
-        section_str = '\item '
+        section_str = @prefix.to_s << '\item '
         section_str << text.to_s << "\n\\par\n"
 
         if ( solution.to_s.length > 0 )
@@ -55,12 +59,12 @@ module Hwk
           section_str << '\end{enumerate}' << "\n"
         end
 
-       section_str
+       section_str << @suffix.to_s
       end
 
       def to_s_base_section
-        section_str = '\begin{homeworkSection}' << "\n"
-        section_str << text.to_s << "\n\\par\n"
+        section_str = @prefix.to_s << '\begin{homeworkSection}'<< ((@title&&@title.length>0) ? "[#{@title}]" : '') << "\n"
+        section_str << @text.to_s << "\n\\par\n"
 
         if ( @solution.to_s.length > 0 )
           section_str << '\subSection{' << '\setlength\parindent{1em} \hangindent=1em' << solution.to_s << "}\n"
@@ -75,7 +79,7 @@ module Hwk
         end
 
         section_str << '\end{homeworkSection}' << "\n" 
-        section_str
+        section_str << @suffix.to_s
       end
     end
   end

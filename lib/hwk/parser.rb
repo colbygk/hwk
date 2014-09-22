@@ -7,6 +7,7 @@ require 'date'
 require 'hwk'
 require 'hwk/question'
 require 'hwk/section'
+require 'hwk/latexutils'
 
 module Hwk
 
@@ -54,15 +55,30 @@ module Hwk
         dsl_file = File.open(dsl,"rb")
         dsl_contents = dsl_file.read
         dsl_file.close
-        instance_eval( dsl_contents )
+        begin
+          instance_eval( dsl_contents, dsl )
+        rescue Exception => e
+          full_trace = e.backtrace
+          full_trace.map! { |s|
+            as = s.split(':')
+            if ( as[0].include? dsl )
+              tab = "  "
+            else
+              tab = "\t"
+            end
+            as[0] = tab + File.split(s)[1]
+            as.join(':')
+          }
+          abort("  "+ e.to_s + "\n" + full_trace.join("\n"))
+        end
       end
 
-      def question( q, &block )
-        @questions << Question.new( q, &block )
+      def question( *q, &block )
+        @questions << Question.new( *q, &block )
       end
 
-      def section( s, &block )
-        @questions << Section.new( s, &block )
+      def section( *s, &block )
+        @questions << Section.new( *s, &block )
       end
 
       def parse_to_tex( hwk_dsl_file )
@@ -88,36 +104,25 @@ module Hwk
         bib_config
       end
 
-      def include_language( lang )
-        if (@languages.include? lang) == false
-          @languages << lang
-        end
-      end
-
-      def include_source( file, desc='' )
-        @lang_suff = File.extname( file )[1..-1]
-        source_text = ""
-
-        if ( @lang_suff )
-          include_language( @lang_suff )
-        else
-          $stderr.puts "Warning, unable to determine file type of '#{file}', no extension"
-        end
-
-
-        source_text = "\\#{@lang_suff}script{#{File.basename( file, File.extname( file ) )}}{#{desc}}"
-
-        source_text
-      end #include_source
-
       def language_configs
-        language_config_block = []
-
-        @languages.each do |lang|
-          File.open( File.expand_path( @hwk_dir + @hwk_lang_dir + lang + ".snip" ) ).each do |line|
-            language_config_block << line
+        begin
+          language_config_block = []
+          @questions.each do |q|
+            q.languages.each do |l|
+              @languages << l unless @languages.include? l
+            end
           end
+
+          @languages.each do |lang|
+            file_name = File.expand_path( @hwk_dir + @hwk_lang_dir + lang + ".snip" )
+            File.open( file_name ).each do |line|
+              language_config_block << line
+            end
+          end
+        rescue Exception => e
+          puts( e.to_s + e.backtrace.join("\n\t") )
         end
+
 
         language_config_block
       end #language_configs
@@ -142,6 +147,7 @@ module Hwk
           end
         rescue NoMethodError => nme
           v = "Unknown reference: " + c + "\n\t" + nme.to_s
+          abort( v + nme.backtrace.join("\n\t"))
         rescue TypeError => te
           abort( "TypeError at "+ te.backtrace[0].split(':')[0..1].join(':') + " call:" + c + "\n\t" + te.to_s)
         rescue NameError => ne
@@ -180,7 +186,12 @@ module Hwk
             subs.each do |c|
               call = c[@ident_substr].downcase
               value = resolve_call( call )
-              line = line.gsub(/#{c}/, value )
+              #line = line[0..(line.index(c) - 1)] + value + line[(line.index(c)+c.length)..-1]
+              if line.strip.length == c.length
+                line = value
+              else
+                line = line.sub(/#{c}/, value )
+              end
             end
           end
           if @debug then print line end

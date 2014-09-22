@@ -1,0 +1,27 @@
+
+title "Example 1"
+due_date DateTime.new(2014,9,9,12,30)
+class_name "Example Class"
+class_time "2:37am"
+author_name "Colby Gutierrez-Kraybill"
+class_professor "Dr. Example"
+
+
+question do
+  text "blahblah"
+  part do
+    enumstyle '\roman'
+    text "test test"
+  end
+  part "test test"
+  part "test test"
+  part "test test"
+end
+
+section "mother frick title", "mother frickin text" do
+end
+
+section do
+  text "yes"
+end
+
