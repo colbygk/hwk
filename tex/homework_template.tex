@@ -33,6 +33,7 @@
 \usepackage{lipsum} % used to alter style of enumerations
 \usepackage{varwidth} % used to alter style of enumerations
 \usepackage{amsmath,amssymb} % used to alter style of enumerations
+\usepackage{mathtools} % used to alter style of enumerations
 \usepackage[colorlinks=true,pagebackref=true,linkcolor=blue]{hyperref}
 \usepackage{Baskervaldx}
 \usepackage{wrapfig}
@@ -78,8 +79,19 @@ HWK_LANGUAGE_CONFIGS_HWK
   {\endaligned$\par}
 
 \newcommand{\uanswer}[1]{\underline{\underline{#1}}}
+\newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
 
-\newcommand{\matp}[1]{\begin{pmatrix} #1 \end{pmatrix}}
+\newcommand{\matp}[1]{\begin{pmatrix*}[r] #1 \end{pmatrix*}}
+\newcommand{\matb}[1]{\begin{bmatrix*}[r] #1 \end{bmatrix*}}
+\newcommand{\matps}[2]{\begin{pmatrix*}[#1] #2 \end{pmatrix*}}
+\newcommand{\mats}[1]{\begin{smallmatrix} #1 \end{smallmatrix}}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\newcommand{\reals}[0]{\mathbb{R}}
+\newcommand{\integers}[0]{\mathbb{Z}}
+\newenvironment{mata}[1]{ \left(\begin{array}{@{}*{#1}{r}|r@{}} }{ \end{array} \right) }
+
 
 % Header and footer for when a page split occurs within a problem environment
 \newcommand{\enterProblemHeader}[1]{
@@ -109,7 +121,7 @@ HWK_LANGUAGE_CONFIGS_HWK
 }
 
 \newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
-\noindent\fbox{\begin{varwidth}{\columnwidth}Solution:\end{varwidth}}\par#1 % Makes the box around the problem answer and puts the content inside
+\vspace{2 mm}\noindent\fbox{\begin{varwidth}{\columnwidth}Solution:\end{varwidth}}\par\vspace{2 mm}#1 % Makes the box around the word Solution and the  answer follows
 }
 
 \newcommand{\homeworkSectionName}{}

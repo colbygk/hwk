@@ -13,6 +13,8 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   puts
   puts( "usage: [-n name] [open|edit|pdf]")
   puts( "\t-n name\t Create a new name.hwk file, prepopulated")
+  puts( "\tmk\t Run the latexmk environment. Will monitor .hwk file for\n\t\t changes and latexmk will reload pdf")
+  puts( "\ttex\t Only create the .tex file")
   puts( "\topen\t Open local .pdf file based on .hwk file.")
   puts( "\tedit\t Edit local .hwk file, currenlty only one.")
   puts( "\tpdf\t Generate and open pdf from local .hwk file.")
@@ -21,10 +23,24 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   exit(true)
 end
 
-editor = ENV['EDITOR']
-editor = 'vi' if editor.nil?
-valid_commands = ['open','edit','pdf']
+valid_commands = ['open','edit','pdf','tex']
+mk_env = false
+only_tex = false
 hwk = nil
+
+def edit_dsl( hwk )
+  editor = ENV['EDITOR']
+  editor = 'vi' if editor.nil?
+  if hwk.files.dsl.exists?
+    status = system( "#{editor} \"#{hwk.files.dsl}\"" );
+    if status == nil || (status && status != true )
+      abort("Error editing: #{$?}")
+    end
+    exit(true)
+  else
+    abort("No hwk file to open: #{hwk.files.dsl}")
+  end
+end
 
 if ARGV.length > 1 and valid_commands.include?(ARGV[0])
   hwk = Homework.new( ARGV[1] )
@@ -51,7 +67,7 @@ if ARGV[0] == "-n"
   end
 elsif ARGV[0] == "open"
   if hwk.files.pdf.exists?
-    status = system( "open \"#{hwk.files.pdf}\"" );
+    status = system( "open -g \"#{hwk.files.pdf}\"" );
     if status == nil || (status && status != true )
       abort("Error opening: #{$?}")
     end
@@ -60,27 +76,24 @@ elsif ARGV[0] == "open"
     abort("No pdf to open: #{hwk.files.pdf}")
   end
 elsif ARGV[0] == "edit"
-
-  if hwk.files.dsl.exists?
-    status = system( "#{editor} \"#{hwk.files.dsl}\"" );
-    if status == nil || (status && status != true )
-      abort("Error editing: #{$?}")
-    end
-    exit(true)
-  else
-    abort("No hwk file to open: #{hwk.files.dsl}")
-  end
+  edit_dsl( hwk )
 elsif ARGV[0] == 'hwk'
   if ARGV[1].nil?
     hwk_file = HWK_DIR + '/bin/hwk'
   else
     hwk_file = HWK_DIR + '/' + ARGV[1]
   end
+  editor = ENV['EDITOR']  # GAH
+  editor = 'vi' if editor.nil?
   status = system( "#{editor} \"#{File.expand_path(hwk_file)}\"" )
   if status == nil || (status && status != true )
     abort("Error editing: #{$?}")
   end
   exit(true)
+elsif ARGV[0] == 'tex'
+  only_tex = true
+elsif ARGV[0] == 'mk'
+  mk_env = true
 elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
 end
@@ -96,61 +109,103 @@ puts "Working on #{hwk.files.dsl}"
 #}
 
 
-begin
-  hwk.load
-  hwk.write_tex
-rescue StandardError => error
-  puts error.backtrace
-  location = error.backtrace[0].split(':')[0..1].join(':')
-  msg = error.message
-  if ( msg.scan(/undefined method/) )
-    #msg = "Unrecognized command: #{msg.split[2]}"
-  end
-  abort( "Error at #{location}: #{msg}" )
-rescue SyntaxError => error
-  location = error.backtrace[0].split(':')[0..1].join(':')
-  msg = error.message
-  if ( msg.scan(/syntax error/) )
-    #msg = "Syntax error: #{msg.split[2]}"
-  end
-  abort( "Syntax error at #{location}: #{msg}" )
-end
-
-# Clear off any old biblio files
-if hwk.files.bbl.exists?
-  File.delete hwk.files.bbl
-end
-
-result = nil
-if hwk.files.tex.exists?
-  result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
-end
-
-if result && hwk.parser.bibliography?
-  if hwk.files.aux.exists?
-    puts "  Generate biblio from #{hwk.files.aux}"
-    result = system( "bibtex \"#{hwk.files.aux}\" >& bibtex.log" )
-    if result
-      puts "  Re-run latex"
-      result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
-      if result
-        result = system( "pdflatex -shell-escape -interaction=batchmode \"#{hwk.files.tex}\" >& pdflatex.log" )
-      end
+def hwk_gen( hwk, only_tex, mk_env )
+  latex = 'pdflatex'
+  pdflatexopts = '-shell-escape -interaction=batchmode -halt-on-error -file-line-error'
+  
+  begin
+    hwk.load
+    hwk.write_tex
+  rescue StandardError => error
+    puts error.backtrace
+    location = error.backtrace[0].split(':')[0..1].join(':')
+    msg = error.message
+    if ( msg.scan(/undefined method/) )
+      #msg = "Unrecognized command: #{msg.split[2]}"
     end
+    abort( "Error at #{location}: #{msg}" )
+  rescue SyntaxError => error
+    location = error.backtrace[0].split(':')[0..1].join(':')
+    msg = error.message
+    if ( msg.scan(/syntax error/) )
+      #msg = "Syntax error: #{msg.split[2]}"
+    end
+    abort( "Syntax error at #{location}: #{msg}" )
+  end
+
+  if only_tex
+    puts "Created tex only: #{hwk.files.tex}"
+    exit
+  end
+
+
+  # Clear off any old biblio files
+  if hwk.files.bbl.exists?
+    File.delete hwk.files.bbl
+  end
+
+  if mk_env
+    return
+  end
+
+  result = nil
+  if hwk.files.tex.exists?
+    result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+  end
+
+  if result && hwk.parser.bibliography?
+    if hwk.files.aux.exists?
+      puts "  Generate biblio from #{hwk.files.aux}"
+      result = system( "bibtex \"#{hwk.files.aux}\" >& bibtex.log" )
+      if result
+        puts "  Re-run latex"
+        result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+        if result
+          result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+        end
+      end
+    else
+      abort( "Expected #{hwk.files.aux} to exist for bibliography, but it's missing!" )
+    end
+  end
+
+  if ( result == false )
+    puts "Error generating PDF from tex file: #{$?}"
   else
-    abort( "Expected #{hwk.files.aux} to exist for bibliography, but it's missing!" )
+    puts "Success!  Reopening file!" unless mk_env
+    if hwk.files.pdf.exists? && mk_env == false
+      system( "open -g \"#{hwk.files.pdf}\"" )
+    elsif hwk.files.pdf.exists? && mk_env
+      system( "open -g \"#{hwk.files.pdf}\"" )
+    end
   end
+
 end
 
-if ( result == false )
-  puts "Error generating PDF from tex file: #{$?}"
+def mk_tex( hwk )
+  mk = 'latexmk'
+  mkopts = '-pdf -pvc'
+  puts "Launching #{mk} thread"
+  puts "#{mk} #{mkopts} '#{hwk.files.tex}' >& latexmk.log"
+  system( "#{mk} #{mkopts} '#{hwk.files.tex}' >& latexmk.log" )
+end
+
+if mk_env
+  puts "Launching editor for #{hwk.files.dsl}"
+  edit_thread = Thread.new{ edit_dsl( hwk ) }
+  mk_thread = Thread.new{ mk_tex( hwk ) }
+  while edit_thread.status != false
+    hwk.files.dsl.wait_for_modification
+    hwk_gen( Homework.new('.'), only_tex, mk_env )
+  end
+  if mk_thread.status != false
+    Thread.kill(mk_thread)
+  end
+
+  exit
 else
-  puts "Success!  Reopening file!"
-  if hwk.files.pdf.exists?
-    system( "open \"#{hwk.files.pdf}\"" )
-  end
+  # this seriously needs a rewrite..
+  hwk_gen( hwk, only_tex, mk_env )
 end
-
-
 
 
