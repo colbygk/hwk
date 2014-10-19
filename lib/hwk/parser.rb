@@ -18,7 +18,6 @@ module Hwk
     [:title, :due_date,:class_name, :class_time, :class_professor, :author_name, :code_inclusion_configuration, :bibliographystyle].each do |m|
       self.class_eval( %Q\
         def #{m}(param=nil,&block)
-           p "called #{m}: %s" % param
            param.nil?  ? (return @#{m}) : (@#{m} = param)
            (instance_eval &block) if block_given?
         end
