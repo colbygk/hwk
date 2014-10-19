@@ -18,6 +18,7 @@ module Hwk
     [:title, :due_date,:class_name, :class_time, :class_professor, :author_name, :code_inclusion_configuration, :bibliographystyle].each do |m|
       self.class_eval( %Q\
         def #{m}(param=nil,&block)
+           p "called #{m}: %s" % param
            param.nil?  ? (return @#{m}) : (@#{m} = param)
            (instance_eval &block) if block_given?
         end
@@ -135,7 +136,7 @@ module Hwk
         begin
           v = eval( c )
           if ( v.is_a?(String) )
-            v = escape_string_for_latex( v )
+            v = escape_string_for_latex( v )  # may not need this?
           elsif ( v.is_a?(Array) )
             vs = ""
             v.each do |e|
@@ -158,7 +159,7 @@ module Hwk
 
       def escape_string_for_latex( s )
         if s.is_a?(String)
-          s.gsub(/([&$#_{}~^])/, '\\\\\1')
+          s.gsub(/([&$#_~^])/, '\\\\\1')
         elsif s == nil
           ""
         else

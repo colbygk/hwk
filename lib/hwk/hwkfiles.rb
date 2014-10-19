@@ -18,6 +18,24 @@ module Hwk
       def exists?
         File.exists?( self )
       end
+
+      def mtime
+        File.stat( self ).mtime
+      end
+      
+      def wait_for_modification
+        if exists?
+          modified = false
+          t = self.mtime
+
+          while ( modified == false )
+            modified = true unless t == self.mtime
+            sleep(1)
+          end
+
+        end
+      end
+
     end
 
     def initialize( here )
@@ -45,6 +63,7 @@ module Hwk
         @bbl = HwkFileString.new(dsl.gsub(/\.#{EXTNAME}/,'.bbl' ) )
       end
     end
+
 
   end
 end
