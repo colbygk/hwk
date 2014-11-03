@@ -44,7 +44,7 @@ module Hwk
         @languages = []
         @biblio = []
 
-        @hwk_dir = "~/Dropbox/Maths/latex/hwk/"
+        @hwk_dir = ENV['HWK_DIR']
         @hwk_lang_dir = "snips/"
       end #initilize
 

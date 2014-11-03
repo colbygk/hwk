@@ -21,11 +21,11 @@ def hwk_mark_territory( toilet, turd )
   end
 end
 
-if ARGV.length < 1 or ARGV[0] == '-h'
+def print_usage
   puts
   puts( "usage: [-n name] [open|edit|pdf]")
   puts( "\t-n name\t Create a new name.hwk file, prepopulated")
-  puts( "\tmk\t Run the latexmk environment. Will monitor .hwk file for\n\t\t changes and latexmk will reload pdf")
+  puts( "\tmk\t Run the latexmk environment. Will monitor .hwk file for\n\t\t changes and latexmk will reload pdf BUGGY!")
   puts( "\ttex\t Only create the .tex file")
   puts( "\topen\t Open local .pdf file based on .hwk file.")
   puts( "\tedit\t Edit local .hwk file, currenlty only one.")
@@ -36,11 +36,17 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   exit(true)
 end
 
+if ARGV.length < 1 or ARGV[0] == '-h'
+  print_usage
+end
+
 valid_commands = ['open','edit','pdf','tex','active']
 mk_env = false
 only_tex = false
 hwk = nil
-openoptions = '-a Skim.app'
+hwk_open_app = 'Preview.app'
+hwk_open_app = ENV['HWK_OPEN_APP'] unless ENV['HWK_OPEN_APP'] == nil
+openoptions = "-a #{hwk_open_app}"
 
 def edit_dsl( hwk )
   editor = ENV['EDITOR']
@@ -120,6 +126,8 @@ elsif ARGV[0] == 'mk'
   mk_env = true
 elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
+else
+ print_usage
 end
 
 hwk_mark_territory(hwktoilet, hwkactiveturd)
