@@ -109,9 +109,9 @@ elsif ARGV[0] == "edit"
   edit_dsl( hwk )
 elsif ARGV[0] == 'hwk'
   if ARGV[1].nil?
-    hwk_file = HWK_DIR + '/bin/hwk'
+    hwk_file = HWK_DIR + File.join('bin', 'hwk');
   else
-    hwk_file = HWK_DIR + '/' + ARGV[1]
+    hwk_file = HWK_DIR + File::SEPARATOR + ARGV[1]
   end
   editor = ENV['EDITOR']  # GAH
   editor = 'vi' if editor.nil?
@@ -127,7 +127,7 @@ elsif ARGV[0] == 'mk'
 elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
 else
- print_usage
+  print_usage
 end
 
 hwk_mark_territory(hwktoilet, hwkactiveturd)
