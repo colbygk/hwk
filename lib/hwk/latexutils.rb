@@ -31,7 +31,7 @@ module Hwk
     def self.make_table( size='\\small', align='r', hline='\hline', text_block )
       table_tbegin = [" \\begin{center}#{size}\\begin{tabular}"]
       table_tend = ' \end{tabular}\end{center} '
-      make_generic_table( table_tbegin, table_tend, align, text_block )
+      make_generic_table( table_tbegin, table_tend, align, hline, text_block )
     end
 
     def self.make_ax_b( a, x, b )
@@ -44,5 +44,14 @@ module Hwk
       table_tend = " \\end{array} #{right}"
       make_generic_table( table_tbegin, table_tend, align, hline, text_block )
     end
+
+    def self.itemize( *q )
+     s = '\begin{itemize}'
+     q.each do |i|
+       s << '\item ' << i
+     end
+     s << '\end{itemize}'
+    end
+
   end
 end

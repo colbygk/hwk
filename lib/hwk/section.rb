@@ -18,6 +18,7 @@ module Hwk
       def initialize( *s, &block )
         super(s,&block)
 
+        @prefix = ''
         @enumstyle = '\alph'
         @im_a_part = nil
         call_stack = caller(2)
@@ -29,6 +30,10 @@ module Hwk
         @text = s[1..-1].join unless s[1..-1].nil?
         @parts = []
         (block.arity < 1 ?  (instance_eval &block) : block.call(self)) if block_given?
+      end
+
+      def newpage( *s, &block )
+        @prefix = '\newpage '
       end
 
       def part( *s, &block )
@@ -52,7 +57,7 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          section_str << '\begin{enumerate}[label=(' <<  enumstyle << '*)]'
+          section_str << '\begin{enumerate}[label=' <<  @enumstyle << ']'
           @parts.each do |p|
             section_str << p.to_s << "\n"
           end
@@ -71,7 +76,7 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          section_str << '\begin{enumerate}[label=(' << enumstyle << '*)]' << "\n"
+          section_str << '\begin{enumerate}[label=' << @enumstyle << ']' << "\n"
           @parts.each do |p|
             section_str << p.to_s << "\n"
           end

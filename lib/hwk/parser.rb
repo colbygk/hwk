@@ -12,10 +12,11 @@ require 'hwk/latexutils'
 module Hwk
 
   class Parser
+    LU = Hwk::Latexutils
     attr_accessor :hwk
     attr_accessor :directory
     attr_accessor :files
-    [:title, :due_date,:class_name, :class_time, :class_professor, :author_name, :code_inclusion_configuration, :bibliographystyle].each do |m|
+    [:title, :header_configs, :due_date,:class_name, :class_time, :class_professor, :author_name, :code_inclusion_configuration, :bibliographystyle].each do |m|
       self.class_eval( %Q\
         def #{m}(param=nil,&block)
            param.nil?  ? (return @#{m}) : (@#{m} = param)
@@ -26,6 +27,7 @@ module Hwk
       def initialize
         @debug = false
         @title = "No title Set"
+        @header_configs = ""
         @due_date = Date.new
         @class_name = "No class_name Set"
         @class_time = "No class_time Set"
@@ -69,7 +71,7 @@ module Hwk
             as[0] = tab + File.split(s)[1]
             as.join(':')
           }
-          abort("  "+ e.to_s + "\n" + full_trace.join("\n"))
+          abort("\n  "+ File.basename(e.to_s) + "\n\n  trace:\n" + full_trace.join("\n"))
         end
       end
 

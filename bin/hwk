@@ -9,6 +9,18 @@ require 'hwk/hwkfiles'
 
 include Hwk
 
+hwktoilet = File.join(Dir.home,'.hwk')
+hwkactiveturd = File.join(hwktoilet,'active')
+
+def hwk_mark_territory( toilet, turd )
+  begin
+    Dir.mkdir(toilet) unless File.exists?(toilet)
+    File.open( turd, 'w+' ) { |f| f.write( Dir.getwd ) }
+  rescue SystemCallError => sce
+    puts( "(warning, unable to create or write to: #{toilet}: #{sce})" )
+  end
+end
+
 if ARGV.length < 1 or ARGV[0] == '-h'
   puts
   puts( "usage: [-n name] [open|edit|pdf]")
@@ -19,14 +31,16 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   puts( "\tedit\t Edit local .hwk file, currenlty only one.")
   puts( "\tpdf\t Generate and open pdf from local .hwk file.")
   puts( "\thwk\t Edit the hwk binary or some other specified library file.")
+  puts( "\tactive\t Print out last directory worked in.")
   puts
   exit(true)
 end
 
-valid_commands = ['open','edit','pdf','tex']
+valid_commands = ['open','edit','pdf','tex','active']
 mk_env = false
 only_tex = false
 hwk = nil
+openoptions = '-a Skim.app'
 
 def edit_dsl( hwk )
   editor = ENV['EDITOR']
@@ -65,9 +79,18 @@ if ARGV[0] == "-n"
     end
     exit(true)
   end
-elsif ARGV[0] == "open"
+elsif ARGV[0] == 'active'
+  turd = 'Dunno, not there!'
+  begin
+    File.open( hwkactiveturd, 'r' ) { |f| turd = f.read }
+    print turd# .gsub(' ', '\\ ')
+  rescue SystemCallError => sce
+    puts( "#{turd} #{hwkactiveturd} #{sce}" );
+  end
+  exit(true)
+elsif ARGV[0] == 'open'
   if hwk.files.pdf.exists?
-    status = system( "open -g \"#{hwk.files.pdf}\"" );
+    status = system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" );
     if status == nil || (status && status != true )
       abort("Error opening: #{$?}")
     end
@@ -76,6 +99,7 @@ elsif ARGV[0] == "open"
     abort("No pdf to open: #{hwk.files.pdf}")
   end
 elsif ARGV[0] == "edit"
+  hwk_mark_territory(hwktoilet, hwkactiveturd)
   edit_dsl( hwk )
 elsif ARGV[0] == 'hwk'
   if ARGV[1].nil?
@@ -98,11 +122,13 @@ elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
 end
 
+hwk_mark_territory(hwktoilet, hwkactiveturd)
+
 if hwk.files.dsl.nil? || hwk.files.dsl.exists? == false
   abort( "Now homework found here" )
 end
 
-puts "Working on #{hwk.files.dsl}"
+puts "Working on #{File.basename(hwk.files.dsl)}"
 
 #set_trace_func proc{ |event, file, line, id, binding, classname|
 #    printf("%8s %s:%-2d %10s %8s\n", event, file, line, id, classname) #if file =~ /my_app_name/ and event == 'return' #show only interesting files
@@ -111,6 +137,7 @@ puts "Working on #{hwk.files.dsl}"
 
 def hwk_gen( hwk, only_tex, mk_env )
   latex = 'pdflatex'
+  openoptions = '-a Skim.app'
   pdflatexopts = '-shell-escape -interaction=batchmode -halt-on-error -file-line-error'
   
   begin
@@ -174,9 +201,9 @@ def hwk_gen( hwk, only_tex, mk_env )
   else
     puts "Success!  Reopening file!" unless mk_env
     if hwk.files.pdf.exists? && mk_env == false
-      system( "open -g \"#{hwk.files.pdf}\"" )
+      system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" )
     elsif hwk.files.pdf.exists? && mk_env
-      system( "open -g \"#{hwk.files.pdf}\"" )
+      system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" )
     end
   end
 

@@ -45,5 +45,34 @@ module Hwk
         \end{figure}#
     end
 
+    def include_tikz( file_name: 'nofilespecified', fig_name: 'no name figure',
+        position_opt: 'h', width: '\columnwidth', height: '!' )
+      s = '\begin{figure}['+position_opt+'] \begin{center}'
+      s << '\resizebox{'+ width +'}{'+ height +'}{'
+      if ( file_name.class == String ) 
+             s << '\input{' + file_name + '.tex}'
+      elsif ( file_name.class == Array )
+        file_name.each do |f|
+             s << '\input{' + f + '.tex}'
+        end
+      end
+      s << '\label{fig:'+fig_name+'}}\end{center}\end{figure}'
+    end
+
+    def include_wrapped_tikz( file_name: 'nofilespecified', fig_name: 'no name figure',
+        lineheight: '1', twidth: '0.5\textwidth', gheight: '!', gwidth: '0.48\textwidth',
+        position: 'r' )
+      s = '\begin{wrapfigure}{'+position+'}{'+twidth+'} \begin{center}'
+      s << '\resizebox{'+ gwidth +'}{'+ gheight +'}{'
+      if ( file_name.class == String ) 
+             s << '\input{' + file_name + '.tex}'
+      elsif ( file_name.class == Array )
+        file_name.each do |f|
+             s << '\input{' + f + '.tex}'
+        end
+      end
+      s << '\label{fig:'+fig_name+'}}\end{center}\end{wrapfigure}'
+    end
   end
+
 end

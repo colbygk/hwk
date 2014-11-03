@@ -36,8 +36,19 @@
 \usepackage{mathtools} % used to alter style of enumerations
 \usepackage[colorlinks=true,pagebackref=true,linkcolor=blue]{hyperref}
 \usepackage{Baskervaldx}
+\usepackage{float}
 \usepackage{wrapfig}
+\usepackage{pgfplots}
+\usepgfplotslibrary{external} 
+\tikzexternalize
+\pgfplotsset{compat=newest}
+\pgfplotsset{plot coordinates/math parser=false}
+\newlength\figureheight
+\newlength\figurewidth
 
+\usepackage[listings,theorems]{tcolorbox}
+
+HWK_HEADER_CONFIGS_HWK
 
 % Margins
 \topmargin=-0.45in
@@ -78,14 +89,21 @@ HWK_LANGUAGE_CONFIGS_HWK
  {\par$\!\aligned}
   {\endaligned$\par}
 
+\newcommand{\qed}{\hfill $\blacksquare$}
 \newcommand{\uanswer}[1]{\underline{\underline{#1}}}
 \newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
 \newcommand{\pdd}[2]{\frac{\partial^2 #1}{\partial #2^2}}
 
-\newcommand{\matp}[1]{\begin{pmatrix*}[r] #1 \end{pmatrix*}}
+\newcommand{\smaa}[1]{\begin{smashedalign} #1 \end{smashedalign}}
+\newcommand{\smac}[1]{\begin{center}\begin{smashedalign} #1 \end{smashedalign}\end{center}}
+\newcommand{\matv}[1]{\begin{vmatrix*}[r] #1 \end{vmatrix*}}
+\newcommand{\matvs}[2]{\begin{vmatrix*}[#1] #2 \end{vmatrix*}}
 \newcommand{\matb}[1]{\begin{bmatrix*}[r] #1 \end{bmatrix*}}
+\newcommand{\matbs}[2]{\begin{bmatrix*}[#1] #2 \end{bmatrix*}}
+\newcommand{\matp}[1]{\begin{pmatrix*}[r] #1 \end{pmatrix*}}
 \newcommand{\matps}[2]{\begin{pmatrix*}[#1] #2 \end{pmatrix*}}
-\newcommand{\mats}[1]{\begin{smallmatrix} #1 \end{smallmatrix}}
+\newcommand{\mats}[1]{\left[\begin{smallmatrix} #1 \end{smallmatrix}\right]}
+\newcommand{\matss}[2]{\left[\begin{smallmatrix*}[#1] #2 \end{smallmatrix*}\right]}
 \DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 \newcommand{\reals}[0]{\mathbb{R}}
@@ -120,6 +138,10 @@ HWK_LANGUAGE_CONFIGS_HWK
   \exitProblemHeader{\homeworkProblemName} % Header and footer after the environment
 }
 
+%\newcommand{\problemAnswer}[1]{
+% \begin{tcolorbox}[colback=blue!5,colframe=blue!50!black,arc=0mm,theorem={Solution \homeworkProblemName}] #1
+% \end{tcolorbox}
+%}
 \newcommand{\problemAnswer}[1]{ % Defines the problem answer command with the content as the only argument
 \vspace{2 mm}\noindent\fbox{\begin{varwidth}{\columnwidth}Solution:\end{varwidth}}\par\vspace{2 mm}#1 % Makes the box around the word Solution and the  answer follows
 }
