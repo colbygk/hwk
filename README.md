@@ -155,7 +155,7 @@ Usage
 
   See the example output of this [Example PDF question](example/question.pdf "Question Example" target='question example')
   
-  [A slightly more complex example](example/exampl1.hwk "raw hwk format" target='hwk example')
+  A slightly more complex example [hwk](example/example1.hwk "raw hwk format" target='hwk simple example') [pdf](example/example1.pdf "pdf format" target='pdf simple example')
 
-  [A waaaaaay more complex example](example/exampl1.hwk "raw hwk format" target='hwk example')
+  A waaaaaay more complex example [hwk](example/math375/Kraybill_math375_hw7.hwk "raw hwk format" target='hwk complex example') [pdf](example/math375/Kraybill_math375_hw7.pdf "pdf format" target='pdf complex example')
 
