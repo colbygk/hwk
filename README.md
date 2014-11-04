@@ -159,3 +159,7 @@ Usage
 
   A waaaaaay more complex example [hwk](example/math375/Kraybill_math375_hw7.hwk "raw hwk format" target='hwk complex example') [pdf](example/math375/Kraybill_math375_hw7.pdf "pdf format" target='pdf complex example')
 
+### A note about macros in homework\_tempalte.tex
+
+  In the complex example, note that there are references to macros and commands that are defined within the
+  primary homework\_template.tex file. See that file for more info for now...
