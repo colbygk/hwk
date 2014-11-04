@@ -9,8 +9,8 @@ class_professor "Dr. Example"
 
 question do
   text "blahblah"
+  enumstyle %q((\arabic*))
   part do
-    enumstyle '\roman'
     text "test test"
   end
   part "test test"
