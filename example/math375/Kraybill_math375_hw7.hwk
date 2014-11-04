@@ -1,0 +1,370 @@
+
+title 'Homework 7\\&8'
+due_date DateTime.new(2014,10,21,12,30)
+class_name "Math 375"
+class_time "12:30pm"
+author_name "Colby Gutierrez-Kraybill"
+class_professor "Prof. Korotkevich"
+
+section %q( Homework 7 )
+question \
+do
+  text %q( Section 2.5, Computer Problem 5(a), p. 116 of Sauer:
+  
+  Use Gauss-Sidel Method to solve the following sparse system for $n=100$ 
+  within 6 correct decimal places (forward error in the infinity norm):
+
+  \vspace{5mm}
+
+    \begin{center}
+      \smaa{
+        \matb{
+          3  & -1     &        &        &    \\\
+          -1 &  3     & -1     &        &    \\\
+             & \ddots & \ddots & \ddots &    \\\
+             &        & -1     & 3      & -1 \\\
+             &        &        & -1     &  3
+        }
+        \matbs{c}{ x_1 \\\ \\\ \vdots \\\ \\\ x_n }
+        & =
+        \matbs{c}{ 2 \\\ 1 \\\ \vdots \\\ 1 \\\ 2 }
+      }
+    \end{center} )
+
+    solution %q(
+      See: problem71.m [\pageref{lst:problem71}] and gausssidel.m [\pageref{lst:gausssidel}].
+      From Matlab: ) + include_source( 'problem71.txt', 'problem71 output' )
+end
+
+question \
+do
+  text %q( Exercise 2.5.2(c), p. 116 of Sauer:
+
+  Rearrange the equations to form a strictly diagonally dominant system. Apply two steps
+  of the Jacobi and Gauss-Sidel Methods from starting vector $[0,\dots,0]$ )
+  solution %q( 
+  \begin{center}
+    \smaa{ u &+ 4v &+ 0w &= 5 \\\ 0u &+ v &+ 2w &= 2 \\\ 4u &+ 0v &+ 3w &= 0 }
+    \vspace{3mm}
+    \smaa{ \matb{1&4&0 \\\ 0&1&2 \\\ 4&0&3}\matb{u\\\v\\\w} &= \matb{5\\\2\\\0}}
+  \end{center}
+  Which is not strictly diagonally dominant, to make it so, rearrange rows and columns:
+  \begin{center}
+    \smaa{ \matb{4&1&0 \\\ 0 & 4 & 3 \\\ 1 & 0 & 2 }\matb{v\\\u\\\w} &= \matb{5\\\0\\\2}}
+  \end{center}
+  \newpage
+
+  Using the Jacobi Method, let: $\bigl[\mats{v_0\\\u_0\\\w_0}\bigr]=\bigl[\mats{0\\\0\\\0}\bigr],x_k=\bigl[\mats{v_k\\\u_k\\\w_k}\bigr]$ and $D,L,U$ be the diagonal, lower diagonal and upper diagonal matrices respectively and $k=0,1,2$.
+  \def \bvm {\matb{5\\\0\\\2}}
+  \def \dinv { \matb{\frac{1}{4} & 0 & 0 \\\ 0 & \frac{1}{4} & 0 \\\ 0 & 0 & \frac{1}{2} } }
+  \def \lvm { \matb{0 & 0 & 0 \\\ 0 & 0 & 0 \\\ 1 & 0 & 0 } }
+  \def \uvm { \matb{0 & 1 & 0 \\\ 0 & 0 & 3 \\\ 0 & 0 & 0 } }
+  \def \avm { \matb{0 & 1 & 0 \\\ 0 & 0 & 3 \\\ 1 & 0 & 0 } }
+  \newcommand{\vuw}[1]{\matb{ v_{#1} \\\ u_{#1} \\\ w_{#1} } }
+  \begin{center}
+    \smaa{ \vuw{k+1} &= D^{-1}(b - (L + U)x_k) \\\
+           \vuw{k+1} &=
+             \dinv\left(\bvm - \left(\lvm + \uvm\right)x_k\right) \\\
+           \vuw{1} &=
+             \dinv\left(\bvm - \avm\matb{0\\\0\\\0}\right) =
+                \matb{ \frac{5}{4} \\\ 0 \\\ 1 } \\\
+           \vuw{2} &=
+             \dinv\left(\bvm - \avm\matb{\frac{5}{4}\\\0\\\1}\right) \\\
+              &= \dinv\left(\bvm - \matb{ 0 \\\ 3 \\\ \frac{5}{4} }\right) = 
+                \matb{ \frac{5}{4} \\\ -\frac{3}{4} \\\ -\frac{1}{8} } \\\
+           \vuw{3} &=
+             \dinv\left(\bvm - \avm\matb{\frac{5}{4}\\\-\frac{3}{4}\\\-\frac{1}{8}}\right) \\\
+              &= \dinv\left(\bvm - \matb{ -\frac{3}{4} \\\ -\frac{3}{8} \\\ \frac{5}{4} }\right) = 
+                \uanswer{\matb{ \frac{23}{16} \\\ \frac{3}{32} \\\ -\frac{1}{8}} } }
+  \end{center}
+  \vspace{3mm}
+
+  Using Gauss-Sidel Method, with the same start as above, but with
+    $x_{k+1}=D^{-1}(b - Ux_k - Lx_{k+1})$ and multiplying $D^{-1}$ through:
+    \newcommand{ \vuwgs }[6] { \matbs{c}{ \frac{5 - #1 - #2}{4} \\\ \frac{0 - #3 - #4}{4} \\\
+                           \frac{2 - #5 - #6}{2} } }
+    \begin{center}
+     \smaa{
+       \vuw{k+1} &= \vuwgs{u_k}{0w_k}{0v_{k+1}}{3w_k}{v_{k+1}}{0u_{k+1}} =
+                    \vuwgs{0}{0}{0\cdot \frac{5}{4}}{0\cdot 0}{\frac{5}{4}}{0\cdot 0} =
+                      \matb{ \frac{5}{4} \\\ 0 \\\ \frac{3}{8}} \\\
+       \vuw{2} &= \vuwgs{0}{0w_k}{0v_{k+1}}{\frac{9}{8}}{\frac{5}{4}}{0u_{k+1}} =
+                      \matb{ \frac{5}{4} \\\ -\frac{9}{32} \\\ \frac{3}{8}} \\\
+       \vuw{3} &= \vuwgs{(-\frac{9}{32})}{0w_k}{0v_{k+1}}{\frac{9}{8}}{\frac{169}{128}}{0u_{k+1}} =
+                      \uanswer{\matb{ \frac{169}{128} \\\ \frac{9}{32} \\\ \frac{87}{256}}} \\\
+      }
+    \end{center}
+  )
+end
+
+question \
+do
+  newpage
+  text %q( How many floating point operations does it take to compute)
+
+  enumstyle %q((\arabic*))
+  part %q( the product $A\vec{x}$, where $A$ is the sparse $n\times n$ matrix from Problem 1?) do
+    solution %q(
+    Given that the sparse matrix only requires that the values that are not zero be visited
+    this leaves the number of operations to be on the order of $O(n(n-1)(n-1))$ or $O(3n-2)$.
+    For the $500\times 500$ sparse matrix, this is then \uanswer{$\approx$ 1498}
+    floating point operations (assuming the multiply-add's are fused).
+    )
+  end
+
+  part %q( the product $B\vec{x}$, where $B$ is a full $n\times n$ matrix? ) do
+    solution %q( 
+      Again, assuming the multiply-add's are fused, then the total number of floating
+      point operations is on the order of $O(\frac{n(n+1)}{2})$, the number of operations
+      is this \uanswer{$\approx$ 125250}.
+    )
+  end
+end
+
+question \
+do
+  text %q(
+   This problem concerns polynomial interpolation based on expansion
+   \[ p(x) = c_1 +c_2 x + c_3 x^2 + \cdots + c_n x^{n-1} \]
+   in the monomial basis in tandem with the Vandermonde approach.
+  )
+  part %q( Assume that the data $\{(x_k,y_k):k=1,\dots,n\}$ is given, where the nodes
+    $x_k$ are distinct. Derive the linear system $V\vec{c}=\vec{y}$ that uniquely
+    determines the coefficients $c_k$.
+  ) do
+    solution %q(
+    \newcommand{\gmatrixsetprefix}[1]{ \def \gmpfx{#1} }
+    \newcommand{\gmatrix}[9]{\matb{ \gmpfx {#1} & \gmpfx {#2} & \cdots & \gmpfx {#3} \\\
+                            \gmpfx {#4} & \gmpfx {#5} & \cdots & \gmpfx {#6} \\\
+                            \vdots & \vdots & \ddots & \vdots \\\
+                            \gmpfx {#7} & \gmpfx {#8} & \cdots & \gmpfx {#9} }}
+    \newcommand{\gvectorsetprefix}[1]{ \def \gvpfx{#1} }
+    \newcommand{\gvectorsetvals}[4]{ \gvectorsetprefix{#1} \def\gvpon{#2} \def\gvptw{#3} \def\gvpth{#4} }
+    \newcommand{\gmatrixvectormult}[9]{\matbs{c}{ 
+      \gmpfx{#1} \gvpfx{\gvpon} + \gmpfx{#2}\gvpfx{\gvptw} + \cdots + \gmpfx{#3}\gvpfx{\gvpth} \\\
+      \gmpfx{#4} \gvpfx{\gvpon} + \gmpfx{#5}\gvpfx{\gvptw} + \cdots + \gmpfx{#6}\gvpfx{\gvpth} \\\
+                       \vdots \\\
+      \gmpfx{#7} \gvpfx{\gvpon} + \gmpfx{#8}\gvpfx{\gvptw} + \cdots + \gmpfx{#9}\gvpfx{\gvpth}
+    }}
+
+    \def \gma {\gmatrixsetprefix{a_} \gmatrix{11}{12}{1n}{21}{22}{2n}{m1}{m2}{mn} }
+    \def \gmx {\gmatrixsetprefix{x^} \gmatrix{k-1}{k}{k+n-1}{k-1}{k}{k+n-1}{k-1}{k}{k+n-1} }
+    \def \gmxz {\gmatrixsetprefix{x^} \gmatrix{0}{1}{n-1}{0}{1}{n-1}{0}{1}{n-1} }
+
+    \newcommand{\gvector}[4]{\matb{ #1{#2} \\\
+                                    #1{#3} \\\
+                                    \vdots \\\
+                                    #1{#4} }}
+    \newcommand{\gvectors}[5]{\matbs{#1}{ #2{#3} \\\
+                                          #2{#4} \\\
+                                          \vdots \\\
+                                          #2{#5} }}
+    \def \gc {\gvectors{c}{c_}{1}{2}{n}}
+    \def \gck {\gvectors{c}{c_}{k}{k+1}{k+n}}
+    \def \gmmac { \gvectorsetvals{c_}{1}{2}{n} \gmatrixsetprefix{a_}
+                              \gmatrixvectormult{11}{12}{1n}{21}{22}{2n}{m1}{m2}{mn} }
+
+    \def \gmmxc { \gvectorsetvals{c_}{1}{2}{n} \gmatrixsetprefix{x^}
+                              \gmatrixvectormult{k-1}{k}{k+n-1}{k-1}{k}{k+n-1}{k-1}{k}{k+n-1} }
+    \def \gmmxzc { \gvectorsetvals{c_}{1}{2}{n} \gmatrixsetprefix{x^}
+                              \gmatrixvectormult{0}{1}{n-1}{0}{1}{n-1}{0}{1}{n-1} }
+
+
+    Matrix multiplication is defined as the following:
+    \begin{center}
+      \smaa{  A\vec{c} &= \vec{y} \\\ \gma\gc &= \gmmac }
+    \end{center}
+    This form illustrates that the vector $\vec{c}$ can represent the coefficients
+    associated with the monomial $p(x)$ by carefully choosing the matrix $V$, with
+    the number of columns $V_n$ the same as $c_n$ rows of $\vec{c}$ and the number of rows in $V$ 
+    equal to the number of rows in $\vec{y}$ or $V_m$ the same as $y_n$:
+    \begin{center}
+      \smaa{  V\vec{c} &= \vec{y} \\\ \gmx\gc &= \gmmxc }
+    \end{center}
+    \newpage
+    By setting $k=1$, the following linear system arises, matching the original monomial $p(x)$
+    for the linear system of results in $\vec{y}$
+    \begin{center}
+      \smaa{  V\vec{c} &= \vec{y} \\\ \gmxz\gc &= \gmmxzc }
+    \end{center}
+    For $\vec{y}$ to be a basis, requires that the system $V\vec{c}$ \  be linearly independent, 
+    that is: \[ c_1 + x^1c_2 + \dots + x^n = 0 \] and \[ c_1 = c_2 = \dots = c_n = 0 \]
+    (with non-zero roots,
+     if there is a zero root, this is simply the zero-vector, which by definition of vector
+     spaces, must be included anyway).
+
+     This form of $V$ is a \textit{Vandermonde} matrix, and it's determinant is defined as:
+     \begin{center}
+       \smaa{ \text{det}(V) = \prod_{1\le i<j\le n} (x_j - x_i) }
+     \end{center}
+     and if $x_j\neq x_i$ then the determinant will be non-zero and it shows that $V$ must
+     be unique.
+     Given these properties, then the matrix $V$ must be invertible. Which will then
+     uniquely define the vector $\vec{c}$ as:
+     \begin{center}
+       \smaa{ \vec{c} = V^{-1}\vec{y} }
+     \end{center}
+     \hfill $\square$
+    )
+  end
+  part %q( Write a Matlab function (calling sequence \texttt{function c = interpvandmon(x,y)})
+    that returns the vector of expansion coefficients $\vec{c} = (c_1,\dots,c_n)^T$ defining
+    the interpolant, given input vectors $\vec{x}=(x_1,\dots,x_n)^T$ and
+    $\vec{y}=(y_1,\dots,y_n)^T$. Use your function to reproduce the plot given in the
+    notes for the data set $D_4=\{(0,1);(1,4);(2,1);(3,1)\}$.
+  ) do
+    newpage
+    solution %q( See problem4b.m [\pageref{lst:problem4b}] and
+      interpvandmon.m [\pageref{lst:interpvandmon}]. ) + 
+      include_tikz(file_name:'problem4bplot',fig_name: "4b Plot" )
+  end
+end
+
+section %q( Homework 8 ) do
+  newpage
+end
+
+question %q( Problem 1 ) do
+  text %q( Excercises 3.1.1(c) and 3.1.2(c), p.149 of Sauer )
+
+  enumstyle %q(3.1.\arabic*(c))
+  part %q( Use Lagrange interpolation to find a polynomial that passes through
+           the points (0,-2),(2,1),(4,4) ) do
+    solution %q( With 3 points, the Lagrange interpolating polynomial is:
+    \begin{center}
+     \smaa{
+        P_2(x) &= y_1\frac{(x-x_2)(x-x_3)}{(x_1-x_2)(x_1-x_3)} + 
+                  y_2\frac{(x-x_1)(x-x_3)}{(x_2-x_1)(x_2-x_3)} + 
+                  y_3\frac{(x-x_1)(x-x_2)}{(x_3-x_1)(x_3-x_2)}  \\\
+        P(x)   &= (-2)\frac{(x-2)(x-4)}{(0-2)(0-4)} +
+                  1\frac{(x-0)(x-4)}{(2-0)(2-4)} +
+                  4\frac{(x-0)(x-2)}{(4-0)(4-2)} \\\
+               &= \frac{(-2)(x-2)(x-4)}{8} +
+                  \frac{x(x-4)}{-4} +
+                  \frac{4x(x-2)}{8} \\\
+               &= \frac{-(x-2)(x-4)}{4} +
+                  \frac{-x(x-4)}{4} +
+                  \frac{2x(x-2)}{4} \\\
+               &= \frac{-x^2+6x-8 -x^2+4x +2x^2-4x}{4} \\\
+               &= \frac{6x-8}{4} = \uanswer{\frac{3x-4}{2}}
+      }
+    \end{center}
+    )
+  end
+
+  part %q( Use Newton's divided differences to find the interpolating polynomials of
+           the points (0,-2),(2,1),(4,4) and verify against Lagrange interpolating
+           polynomial ) do
+    solution %q(
+    \begin{center}
+     \smaa{
+       P(x) & = f[x_1] + f[x_1\ x_2](x-x_1) + f[x_1\ x_2\ x_3](x-x_1)(x-x_2) \\\
+       f[x_1\ x_2] & = \frac{f(x_2)-f(x_1)}{x_2 - x_1} = \frac{3}{2} \\\
+       f[x_2\ x_3] & = \frac{f(x_3)-f(x_2)}{x_3 - x_2} = \frac{3}{2} \\\
+       f[x_1\ x_2\ x_3] & = \frac{\frac{3}{2}-\frac{3}{2}}{4-2} = 0 \\\
+       P(x) & = -2 + \frac{3}{2}(x-0) + 0 \\\
+            & = -2 + \frac{3x}{2} = \uanswer{\frac{3x-4}{2}} \hfill \square
+     }
+    \end{center}
+    )
+  end
+end
+
+question %q( Problem 2 ) do
+  newpage
+  text %q( Use the \texttt{interpnewt} and \texttt{hornernewt(c,x,z)} )
+  solution %q( Not entirely sure what to do here...  TODO..)
+end
+
+question %q( Problem 3 ) do
+  text %q( Use your routines from Problem 2 to interpolate the data sets
+   $\{(x_j,y_j):j=1,\dots,n\}$, where $y_j=f(x_j)$ with $f(x)=1/(x^2+1)$,
+   in each case, return 3 plots ) +
+   LU.itemize( %q(Data and interpolant on [-4,4]. Interpolants should be plotted on a dense
+               collection of points, say 500 equispaced. Include plot markers.),
+            %q(The error $e(x) = f(x) - p(x)$ for $x\in [-4,4]$),
+            %q(The function $g(x) = \frac{1}{n!}\prod_{k=1}^n\left(x-x_k\right)$ for $x\in [-4,4]$)
+          ) + %q( Discuss results )
+           
+   plotwid = '.70\textwidth'
+   part %q( $x_j = -4+8\frac{j-1}{n-1},n=11$ ) do
+     solution %q( See: problem83.m [\pageref{lst:problem83}] and 
+      problem83gx.m [\pageref{lst:problem83gx}].
+     ) + include_tikz( file_name:'p31f',fig_name: 'Prob 3.1 $f(x)$', position_opt:'H',
+         width: plotwid ) +
+         %q( Given the equations, this shows the effect of the starting positions of
+             interpolation points as defined by the $x_j$ function and the method having
+             to create larger coefficients to get from the start point to the actual
+             function. These start points are quite far from the actual function toward
+             the edges and the polynomial generated is trying to force the final points
+             through [-4,4].
+             ) + 
+         include_tikz( file_name:'p31e',fig_name: 'Prob 3.1 $e(x)$', position_opt:'H',
+         width: plotwid  ) +
+         include_tikz( file_name:'p31g',fig_name: 'Prob 3.1 $g(x)$', position_opt:'H',
+         width: plotwid  ) +
+         %q(
+           These plots more directly illustrate the point of the starting positions
+           being far from the original function. The order of magnitude of the $e(x)$
+           and $g(x)$ is 10 times greater than the following plots.
+         )
+   end
+   part %q( $x_j = -4cos\frac{\pi(2j-1)}{2n},n=11$ ) do
+     solution %q(See: problem83.m [\pageref{lst:problem83}] and 
+           problem83gx.m [\pageref{lst:problem83gx}].) +
+         include_tikz( file_name:'p32f',fig_name: 'Prob 3.2 $f(x)$', position_opt:'H',
+         width: plotwid ) +
+         %q( In this case, the starting positions are nearer the actual function,
+          keeping the coefficient generation more settled.) +
+         include_tikz( file_name:'p32e',fig_name: 'Prob 3.2 $e(x)$', position_opt:'H',
+         width: plotwid  ) +
+         include_tikz( file_name:'p32g',fig_name: 'Prob 3.2 $g(x)$', position_opt:'H',
+         width: plotwid  ) +
+         %q(
+           Again, notice that the order of magnitude is 10 times less than the previous
+           plot.  Also note that the sinusolidal nature of the starting positions helps
+           with keeping the interpolation settling around the actual function behavior.
+         )
+   end
+end
+
+question %q( Problem 4 ) do
+  text %q( Exercise 3.2.4, p.156 of Sauer: Consider $f(x) = \frac{1}{x+5}$ with
+  interpolation nodes $x_j=0,2,4,6,8,10$. Find upper bound for the interpolation
+  error at:)
+  part %q( $x=1$ ) do
+    solution %q( Interpolation error: $\frac{f^{n+1}(\xi)}{(n+1)!}\prod_{j=0}^{n}(x-x_j)$, given
+    6 nodes, $n=6,f^{(6)} = \frac{720}{(x+5)^7}$, then:
+    \begin{center}
+      \smaa{
+        e(x)&= \frac{720(x-0)(x-2)(x-4)(x-6)(x-8)(x-10)}{720(x+5)^7} \\\
+            &= \frac{x(x-2)(x-4)(x-6)(x-8)(x-10)}{(x+5)^7}\\\
+            & \text{let} x=1,\\\
+        e(1)&= \frac{(-1)(-3)(-5)(-7)(-9)}{6^7} \uanswer{\approx -0.003375771604938}
+      }
+    \end{center}
+    )
+  end
+  part %q( $x=5$ ) do
+    solution %q( Following the work in part (a):
+    \begin{center}
+      \smaa{
+            & \text{let} x=5,\\\
+        e(5)&= \frac{5(3)(1)(-1)(-3)(-5)}{10^7} \uanswer{= -2.250\times 10^{-05}}
+        }
+    \end{center}
+    )
+  end
+end
+
+
+section %q( Appendix ) do
+  prefix '\newpage'
+  text %q( \label{lst:problem71} ) + include_source( 'problem71.m', 'problem71.m' ) +
+    %q( \newpage \label{lst:gausssidel} ) + include_source( 'gausssidel.m', 'gausssidel.m' ) +
+    %q( \newpage \label{lst:problem4b} ) + include_source( 'problem4b.m', 'problem4b.m' ) +
+    %q( \label{lst:interpvandmon} ) + include_source( 'interpvandmon.m', 'interpvandmon.m' ) +
+    %q( \label{lst:problem83} ) + include_source( 'problem83.m', 'problem83.m' ) +
+    %q( \label{lst:problem83gx} ) + include_source( 'problem83gx.m', 'problem83gx.m' )
+
+end

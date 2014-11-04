@@ -1,0 +1,2 @@
+>> problem71
+ n: 100, steps: 21, backerror: 9.559033e-07
