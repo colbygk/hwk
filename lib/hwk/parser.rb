@@ -45,7 +45,7 @@ module Hwk
         @biblio = []
 
         @hwk_dir = ENV['HWK_DIR']
-        @hwk_lang_dir = "snips/"
+        @hwk_lang_dir = "/snips/"
       end #initilize
 
       def method_missing( method, *args, &code )
@@ -122,7 +122,7 @@ module Hwk
             end
           end
         rescue Exception => e
-          puts( e.to_s + e.backtrace.join("\n\t") )
+          puts( e.to_s + "\n\n\t" + e.backtrace.join("\n\t") )
         end
 
 
