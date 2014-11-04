@@ -7,7 +7,7 @@ NOTE: This is pretty alpha software.  Srsly.  Along with weirdnesses that exist 
 weirdnesses that exist when mixing <span class="latex">L<sup>A</sup>T<sub>E</sub>X</span> and tikz and limited memory
 usage of the generic pdflatex tool.
 
-A Ruby based Domain Specific Language for taking a compact homework/assignment description, feeding into a <span class="latex">L<sup>A</sup>T<sub>E</sub>X</span> template for a final, nicely formatted homework output. The template of the output is based on the work of http://www.latextemplates.com/template/programming-coding-assignment 
+This is a Ruby based Domain Specific Language for taking a compact homework/assignment description, feeding into a <span class="latex">L<sup>A</sup>T<sub>E</sub>X</span> template for a final, nicely formatted homework output. The template of the output is based on the work of http://www.latextemplates.com/template/programming-coding-assignment 
 
 So, essentially this format is Ruby+<span class="latex">L<sup>A</sup>T<sub>E</sub>X</span>+template -> nice pdf output
 
