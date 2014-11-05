@@ -57,8 +57,28 @@ module Hwk
         dsl_file = File.open(dsl,"rb")
         dsl_contents = dsl_file.read
         dsl_file.close
+
+        # the following allows for placing a block start
+        # on the line following a method/whatever expecting a block
+        # e.g.
+        #   question
+        #   do
+        #   end
+        # vs
+        #   question do
+        #   end
+        # or
+        #   question
+        #   {
+        #   }
+        # vs
+        #   question {
+        #   }
+        #
+        collapsed_dsl_contents = dsl_contents.gsub(/\ndo/, ' do')
+        collapsed_dsl_contents = collapsed_dsl_contents.gsub(/\n\s?{/, ' {')
         begin
-          instance_eval( dsl_contents, dsl )
+          instance_eval( collapsed_dsl_contents, dsl )
         rescue Exception => e
           full_trace = e.backtrace
           full_trace.map! { |s|
