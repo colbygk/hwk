@@ -1,6 +1,6 @@
 <link href="README.css" rel="stylesheet"></link>
 
-hwk v 0.0.3 
+hwk v 0.0.4 
 ===
 
 NOTE: This is pretty alpha software.  Srsly.  Along with weirdnesses that exist in the code itself, there are

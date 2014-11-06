@@ -9,7 +9,7 @@ require 'hwk/hwkfiles'
 require 'hwk/parser'
 
 module Hwk
-  VERSION = '0.0.3'
+  VERSION = '0.0.4'
   EXTNAME = 'hwk'
   HWK_DIR = "~/Dropbox/Maths/latex/hwk/"
   TEMPLATE_DIR = HWK_DIR + "tex/"
