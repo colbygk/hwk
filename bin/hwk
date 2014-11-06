@@ -44,9 +44,13 @@ valid_commands = ['open','edit','pdf','tex','active']
 mk_env = false
 only_tex = false
 hwk = nil
-hwk_open_app = 'Preview.app'
-hwk_open_app = ENV['HWK_OPEN_APP'] unless ENV['HWK_OPEN_APP'] == nil
-openoptions = "-a #{hwk_open_app}"
+
+# Default open app
+$hwk_open_app = 'Preview.app'
+# Override default app if environment demands it
+$hwk_open_app = ENV['HWK_OPEN_APP'] unless ENV['HWK_OPEN_APP'] == nil
+
+$openoptions = "-a #{$hwk_open_app}"
 
 def edit_dsl( hwk )
   editor = ENV['EDITOR']
@@ -96,7 +100,7 @@ elsif ARGV[0] == 'active'
   exit(true)
 elsif ARGV[0] == 'open'
   if hwk.files.pdf.exists?
-    status = system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" );
+    status = system( "open #{$openoptions} -g \"#{hwk.files.pdf}\"" );
     if status == nil || (status && status != true )
       abort("Error opening: #{$?}")
     end
@@ -136,7 +140,7 @@ if hwk.files.dsl.nil? || hwk.files.dsl.exists? == false
   abort( "Now homework found here" )
 end
 
-puts "Working on #{File.basename(hwk.files.dsl)}"
+puts "Working on #{hwk.files.dsl.basename}"
 
 #set_trace_func proc{ |event, file, line, id, binding, classname|
 #    printf("%8s %s:%-2d %10s %8s\n", event, file, line, id, classname) #if file =~ /my_app_name/ and event == 'return' #show only interesting files
@@ -145,12 +149,15 @@ puts "Working on #{File.basename(hwk.files.dsl)}"
 
 def hwk_gen( hwk, only_tex, mk_env )
   latex = 'pdflatex'
-  openoptions = '-a Skim.app'
-  pdflatexopts = '-shell-escape -interaction=batchmode -halt-on-error -file-line-error'
+  pdflatexopts = '-file-line-error -shell-escape -interaction=nonstopmode' # -halt-on-error -file-line-error'
+  pdflatexlog = 'pdflatex.log'
+
+  ENV['max_print_line'] = '2048'
   
   begin
     hwk.load
     hwk.write_tex
+    tex_trace = hwk.tex_trace
   rescue StandardError => error
     puts error.backtrace
     location = error.backtrace[0].split(':')[0..1].join(':')
@@ -169,7 +176,7 @@ def hwk_gen( hwk, only_tex, mk_env )
   end
 
   if only_tex
-    puts "Created tex only: #{hwk.files.tex}"
+    puts "Created tex only: #{hwk.files.tex.basename}"
     exit
   end
 
@@ -185,7 +192,7 @@ def hwk_gen( hwk, only_tex, mk_env )
 
   result = nil
   if hwk.files.tex.exists?
-    result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+    result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& #{pdflatexlog}" )
   end
 
   if result && hwk.parser.bibliography?
@@ -194,9 +201,9 @@ def hwk_gen( hwk, only_tex, mk_env )
       result = system( "bibtex \"#{hwk.files.aux}\" >& bibtex.log" )
       if result
         puts "  Re-run latex"
-        result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+        result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& #{pdflatexlog}" )
         if result
-          result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& pdflatex.log" )
+          result = system( "#{latex} #{pdflatexopts} \"#{hwk.files.tex}\" >& #{pdflatexlog}" )
         end
       end
     else
@@ -205,13 +212,61 @@ def hwk_gen( hwk, only_tex, mk_env )
   end
 
   if ( result == false )
-    puts "Error generating PDF from tex file: #{$?}"
+    log = File.read( pdflatexlog )
+    puts " Error generating PDF from TeX file: #{$?}"
+
+    start = 0
+    beg = 0
+    errors = []
+    sandwiches = []
+    begin
+      em = log.match(/^(?<path>.+):(?<line>\d+):(?<error>.+)/, start)
+      if em != nil
+        start = em.end(em.length-1)
+        errors << em
+        sandwiches << start
+        beg = em.begin(0)
+      end
+    end until em == nil
+
+    if ( sandwiches.length > 1 )
+      sandwiches[-1] = beg
+    end
+
+    latex_err = ''
+    lines = []
+    latex_err << " LaTeX reporting errors in raw TeX file:\n"
+    errors.each { |e|
+      filen = e[1] unless e.length < 2
+      linen = e[2] unless e.length < 3
+      lines << linen.to_i
+      err = e[3] unless e.length < 4
+      latex_err << "    #{File.basename(filen)} line:#{linen}\n"
+    }
+    latex_err << "\n   error related to:\n"
+    if sandwiches.length > 1
+      (log[sandwiches[0]..sandwiches[1]]).lines.each { |l|
+         latex_err << "     #{l}"
+      }
+    end
+
+    puts "  at or near:\n\n"
+    last_l = 0
+    lines.each { |l|
+      if tex_trace.length > l
+        filen,linen,err = tex_trace[l].split(/:/)
+        puts "   #{File.basename(filen)} line:#{linen}\n" unless last_l == linen
+        last_l = linen
+      end
+    }
+    puts "\n #{latex_err}\n"
+
   else
     puts "Success!  Reopening file!" unless mk_env
     if hwk.files.pdf.exists? && mk_env == false
-      system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" )
+      system( "open #{$openoptions} -g \"#{hwk.files.pdf}\"" )
     elsif hwk.files.pdf.exists? && mk_env
-      system( "open #{openoptions} -g \"#{hwk.files.pdf}\"" )
+      system( "open #{$openoptions} -g \"#{hwk.files.pdf}\"" )
     end
   end
 

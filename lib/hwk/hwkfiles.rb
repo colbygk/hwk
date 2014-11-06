@@ -19,6 +19,10 @@ module Hwk
         File.exists?( self )
       end
 
+      def basename
+        File.basename( self )
+      end
+
       def mtime
         File.stat( self ).mtime
       end

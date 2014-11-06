@@ -3,11 +3,13 @@
 #
 
 
+require 'tempfile'
+
 require 'hwk/hwkfiles'
 require 'hwk/parser'
 
 module Hwk
-  VERSION = '0.0.2'
+  VERSION = '0.0.3'
   EXTNAME = 'hwk'
   HWK_DIR = "~/Dropbox/Maths/latex/hwk/"
   TEMPLATE_DIR = HWK_DIR + "tex/"
@@ -17,7 +19,7 @@ module Hwk
 
   class Homework
     attr_reader :parser, :files
-    attr_accessor :parsed_tex
+    attr_accessor :parsed_tex, :tex_trace
 
     def initialize( directory )
       @files = HwkFiles.new( directory )
@@ -27,15 +29,26 @@ module Hwk
 
     def load
       @parser.load_dsl files.dsl
-      @parsed_tex = @parser.parse_template( FQP_TEMPLATE_FILE )
+      @parsed_tex,@tex_trace = @parser.parse_template( FQP_TEMPLATE_FILE )
     end
 
     def write_tex
-      output_file = File.open( @files.tex, "w" )
+      # Make sure that latexmk (if running) doesn't catch the tex file in midconstruction...
+      #output_file = File.open( @files.tex, "w" )
+
+      output_file = Tempfile.new( "#{@files.tex.basename}" )
       output_file.write( @parsed_tex )
       output_file.close
+      File.rename( output_file.path, @files.tex.basename )
     end
       
+    def write_tex_trace
+      l = 1
+      @tex_trace.each { |t|
+        puts "#{l}: #{t}"
+        l += 1
+      }
+    end
 
   end
 

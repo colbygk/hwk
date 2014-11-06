@@ -8,21 +8,33 @@ require 'hwk'
 require 'hwk/question'
 require 'hwk/section'
 require 'hwk/latexutils'
+require 'hwk/hwktracer'
 
 module Hwk
 
   class Parser
-    LU = Hwk::Latexutils
+    LU = Hwk::Latexutils  # allows access to Latexutils as LU in hwk file
+
     attr_accessor :hwk
     attr_accessor :directory
     attr_accessor :files
-    [:title, :header_configs, :due_date,:class_name, :class_time, :class_professor, :author_name, :code_inclusion_configuration, :bibliographystyle].each do |m|
+
+    [:title, :header_configs, :due_date,:class_name, :class_time,   \
+     :class_professor, :author_name, :code_inclusion_configuration, \
+     :bibliographystyle].each do |m|
       self.class_eval( %Q\
         def #{m}(param=nil,&block)
-           param.nil?  ? (return @#{m}) : (@#{m} = param)
+
+           if param.nil? 
+             return @#{m}, HWKTRACE.lines[self.object_id]['#{m}']
+           else
+             HWKTRACE.update( obj: self, name: '#{m}', line_info: caller(0)[1], value: param )
+             @#{m} = param
+           end
+
            (instance_eval &block) if block_given?
         end
-                      \ )
+                         \ )
 
       def initialize
         @debug = false
@@ -40,7 +52,7 @@ module Hwk
         @ident_substr = @identifier[:prefix].length..(-1*(@identifier[:suffix].length+1))
         @ident_regex = /#{@identifier[:prefix]}\S+#{@identifier[:suffix]}/
 
-         @questions = []
+        @sections = []
         @languages = []
         @biblio = []
 
@@ -51,6 +63,10 @@ module Hwk
       def method_missing( method, *args, &code )
         puts "missing: #{method}"
         super
+      end
+
+      def to_sym
+        return :Parser
       end
 
       def load_dsl( dsl )
@@ -74,9 +90,13 @@ module Hwk
         # vs
         #   question {
         #   }
+        #   
+        # This also applies to section
         #
-        collapsed_dsl_contents = dsl_contents.gsub(/\ndo/, ' do')
-        collapsed_dsl_contents = collapsed_dsl_contents.gsub(/\n\s?{/, ' {')
+        #collapsed_dsl_contents = dsl_contents.gsub(/\n\s?do/, " \\ \ndo")
+        #collapsed_dsl_contents = collapsed_dsl_contents.gsub(/\n\s?{/, " \\ \n{")
+        # deprecated for now...
+        collapsed_dsl_contents = dsl_contents
         begin
           instance_eval( collapsed_dsl_contents, dsl )
         rescue Exception => e
@@ -96,11 +116,11 @@ module Hwk
       end
 
       def question( *q, &block )
-        @questions << Question.new( *q, &block )
+        @sections << Question.new( *q, &block )
       end
 
       def section( *s, &block )
-        @questions << Section.new( *s, &block )
+        @sections << Section.new( *s, &block )
       end
 
       def parse_to_tex( hwk_dsl_file )
@@ -129,8 +149,8 @@ module Hwk
       def language_configs
         begin
           language_config_block = []
-          @questions.each do |q|
-            q.languages.each do |l|
+          @sections.each do |s|
+            s.languages.each do |l|
               @languages << l unless @languages.include? l
             end
           end
@@ -154,16 +174,20 @@ module Hwk
       end
 
       def resolve_call( c )
+
         begin
-          v = eval( c )
+          v, t = eval( c )
           if ( v.is_a?(String) )
             v = escape_string_for_latex( v )  # may not need this?
           elsif ( v.is_a?(Array) )
-            vs = ""
+            vss = ''
+            ts = nil
             v.each do |e|
-              vs << e.to_s
+              vs, ts = e.to_traced_s
+              vss << vs
+              t.concat(ts) unless ts.nil?
             end
-            v = vs
+            v = vss
           elsif v.is_a?(Date)
             v = v.strftime("%a, %e %b %Y %l:%M %P")
           end
@@ -175,7 +199,9 @@ module Hwk
         rescue NameError => ne
           abort( "NameError at "+ ne.backtrace[0].split(':')[0..1].join(':') + " call:" + c + "\n\t" + ne.to_s )
         end
-        v
+
+        return v, t
+
       end #resolve_call
 
       def escape_string_for_latex( s )
@@ -188,38 +214,68 @@ module Hwk
         end
       end # escape_string_for_latex
 
-      def questions_loop
-        question_block = []
+      def sections_loop
+        sections_block = []
 
-        @questions.each do |q|
-          question_block << q
+        @sections.each do |s|
+          sections_block << s
         end
 
-        question_block
-      end # questions_loop
+        return sections_block, []
+      end # sections_loop
 
       def parse_template( template )
         tex_output = ""
-        File.open( File.expand_path( template ) ).each do |line|
+        template_tex_lines = 0
+        tex_trace = []
+        trace_elements = nil
+
+        fq_template = File.expand_path( template )
+
+        File.open( fq_template ).each do |line|
           if @debug then print "read: #{line}" end
           subs = line.scan(@ident_regex)
-          if subs then
+          if subs.length > 0 then
             if @debug then puts " found: #{subs}" end
             subs.each do |c|
               call = c[@ident_substr].downcase
-              value = resolve_call( call )
-              #line = line[0..(line.index(c) - 1)] + value + line[(line.index(c)+c.length)..-1]
+              value, trace_elements = resolve_call( call )
               if line.strip.length == c.length
+                # These are sections/questions/larger substitutions
                 line = value
               else
+                # These are a straight substitution
                 line = line.sub(/#{c}/, value )
+              end # if line.strip.length == c.length
+            end # subs.each do
+
+            unless trace_elements.nil?
+              if trace_elements.is_a?(Hwkline)
+                tex_trace << trace_elements.hwk_line
+              elsif trace_elements.is_a?(Array)
+                trace_elements.each { |t|
+                  tex_trace << t
+                }
+              else
+                tex_trace << "unknown:0:voodoo"
               end
             end
-          end
+          else # if subs
+            line.lines.each do |l|
+              tex_trace << "#{fq_template}:#{template_tex_lines}:from template"
+              template_tex_lines += 1
+            end
+
+          end # if subs
           if @debug then print line end
-          tex_output << line
-        end
-        tex_output
+
+          tex_output << line unless line.nil?
+
+        end # File.open
+
+        # HWKTRACE.dump
+
+        return tex_output, tex_trace
       end # parse_template
 
     end 

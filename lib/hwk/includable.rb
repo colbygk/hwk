@@ -75,4 +75,37 @@ module Hwk
     end
   end
 
-end
+
+  def adjust_caller_loc( loc, n )
+    caller_parts = loc.match(/(.+):(\d+):(.+)/)
+
+    unless caller_parts.nil?
+      loc = "#{caller_parts[1]}:#{String(caller_parts[2].to_i+n)}:#{caller_parts[3]}" unless caller_parts.length != 4
+    end
+
+    return loc
+  end
+
+  def add_and_trace_from( add_str: nil, tr: nil, name: nil, loc: caller(0)[1], obj: nil )
+
+    if add_str.nil?
+      return ''
+    end
+
+    obj_id = self.object_id
+    obj_id = obj.object_id unless obj.nil?
+
+    add_str.lines.each { |l|
+      tr_str = loc
+        unless HWKTRACE.lines[ obj_id ].nil?
+          unless HWKTRACE.lines[ obj_id ][ name ].nil?
+            tr_str = HWKTRACE.lines[ obj_id ][ name ].hwk_line
+          end
+        end
+      tr << tr_str unless tr.nil?
+    }
+
+    add_str
+ end
+
+end # module Hwk
