@@ -32,6 +32,7 @@ def print_usage
   puts( "\tpdf\t Generate and open pdf from local .hwk file.")
   puts( "\thwk\t Edit the hwk binary or some other specified library file.")
   puts( "\tactive\t Print out last directory worked in.")
+  puts( "\tspell\t Use a spell checker. (defaults to aspell)")
   puts
   exit(true)
 end
@@ -40,7 +41,7 @@ if ARGV.length < 1 or ARGV[0] == '-h'
   print_usage
 end
 
-valid_commands = ['open','edit','pdf','tex','active']
+valid_commands = ['open','edit','pdf','tex','active','spell']
 mk_env = false
 only_tex = false
 hwk = nil
@@ -130,6 +131,9 @@ elsif ARGV[0] == 'mk'
   mk_env = true
 elsif ARGV[0] == 'pdf'
   # pass thru to default behavior
+elsif ARGV[0] == 'spell'
+    result = system( "aspell -c \"#{hwk.files.dsl.basename}\"" )
+    exit(result)
 else
   print_usage
 end
