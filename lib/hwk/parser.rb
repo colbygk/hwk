@@ -149,6 +149,8 @@ module Hwk
       def language_configs
         begin
           language_config_block = []
+          trace_lines = []
+
           @sections.each do |s|
             s.languages.each do |l|
               @languages << l unless @languages.include? l
@@ -157,8 +159,11 @@ module Hwk
 
           @languages.each do |lang|
             file_name = File.expand_path( @hwk_dir + @hwk_lang_dir + lang + ".snip" )
+            linen = 1
             File.open( file_name ).each do |line|
               language_config_block << line
+              trace_lines << "#{file_name}:#{linen}:language config"
+              linen += 1
             end
           end
         rescue Exception => e
@@ -166,7 +171,7 @@ module Hwk
         end
 
 
-        language_config_block
+        return language_config_block, trace_lines
       end #language_configs
 
       def add_problem( problem )
@@ -183,10 +188,16 @@ module Hwk
             vss = ''
             ts = nil
             v.each do |e|
-              vs, ts = e.to_traced_s
-              vss << vs
-              t.concat(ts) unless ts.nil?
+              # Tracing info was not previously available, populate it now
+              if defined? e.to_traced_s
+                vs, ts = e.to_traced_s
+                vss << vs
+                t.concat(ts) unless ts.nil?
+              else # Tracing info was already available
+                vss << e.to_s
+              end
             end
+
             v = vss
           elsif v.is_a?(Date)
             v = v.strftime("%a, %e %b %Y %l:%M %P")
