@@ -24,7 +24,7 @@ module Hwk
 
     def include_source( file, options='', desc='' )
       lang_suff = File.extname( file )[1..-1]
-      source_text = ""
+      source_text = "\\label{lst:#{File.basename(file)}}\n"
 
       if ( lang_suff )
         include_language( lang_suff )
@@ -34,7 +34,7 @@ module Hwk
 
       source_name = File.basename( file, File.extname( file ) )
       abort( "File does not exist:#{source_name}" ) unless File.exists?( file )
-      source_text = options + "\\#{lang_suff}script{#{source_name}}{#{desc}}"
+      source_text << options + "\\#{lang_suff}script{#{source_name}}{#{desc}}"
     end
 
     def include_fig( file_name_sans_ext, fig_name, position_opt='h', options='width=.5\textwidth' )
