@@ -10,7 +10,7 @@ module Hwk
     attr_accessor :im_a_part
     attr_accessor :lines
 
-    [:prefix, :suffix, :enumstyle, :text, :title, \
+    [:prefix, :suffix, :enumtype, :itemizelabel, :enumlabel, :enumstyle, :text, :title, \
      :solution, :parts, :title_suffix].each do |m|
       self.class_eval( %Q\
         def #{m}(*param,&block)
@@ -32,6 +32,9 @@ module Hwk
         @lines = {}
         @prefix = ''
         @enumstyle = '(\alph*)'
+        @enumtype = 'enumerate'
+        @enumlabel = "[label=#{@enumstyle}]"
+        @itemizelabel = ''
         @im_a_part = nil
         call_stack = caller(2)
         if call_stack
@@ -48,6 +51,18 @@ module Hwk
         @parts = []
 
         (block.arity < 1 ?  (instance_eval &block) : block.call(self)) if block_given?
+
+      end
+
+      def construct_enuminfo
+
+        if @enumtype == 'enumerate'
+          @enumlabel = "[label=#{@enumstyle}]"
+          @itemizelabel = ''
+        elsif @enumtype == 'itemize'
+          @enumlabel = ''
+          @itemizelabel = "[#{@itemizelabel}]"
+        end
 
       end
 
@@ -79,8 +94,12 @@ module Hwk
         question_str = ''
         trace_lines = []
 
-        question_str << add_and_trace_from( add_str: @prefix.to_s << '\item ', tr: trace_lines, name: 'prefix' )
-        question_str << add_and_trace_from( add_str: @text.to_s << "\n\\par\n", tr: trace_lines, name: 'text' )
+        construct_enuminfo
+
+        question_str << add_and_trace_from( add_str: @prefix.to_s << '\item' << @itemizelabel \
+            << ' ', tr: trace_lines, name: 'prefix' )
+        question_str << add_and_trace_from( add_str: @text.to_s << "\n\\par\n", \
+            tr: trace_lines, name: 'text' )
 
         if ( @solution.to_s.length > 0 )
           question_str << add_and_trace_from( add_str: '\problemAnswer{' \
@@ -89,8 +108,8 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          question_str << add_and_trace_from( add_str: '\begin{enumerate}[label=' \
-              <<  @enumstyle << ']', tr: trace_lines, \
+          question_str << add_and_trace_from( add_str: '\begin{' << @enumtype << '}' \
+              << @enumlabel, tr: trace_lines, \
               name: 'enumstyle' )
           @parts.each do |p|
             p_str, p_tr = p.to_traced_s
@@ -99,7 +118,8 @@ module Hwk
               trace_lines << ptr
             end
           end
-          question_str << add_and_trace_from( add_str: '\end{enumerate}' << "\n", tr: trace_lines )
+          question_str << add_and_trace_from( add_str: '\end{' << @enumtype << '}' \
+             << "\n", tr: trace_lines )
         end
 
        question_str << add_and_trace_from( add_str: @suffix.to_s, tr: trace_lines, name: 'suffix' )
@@ -110,6 +130,8 @@ module Hwk
       def to_s_base_question
         trace_lines = []
         question_str = ''
+
+        construct_enuminfo
 
         question_str << add_and_trace_from(  add_str: @prefix.to_s << "\n", tr: trace_lines, name: 'prefix', loc: caller(0)[0] )
 
@@ -124,8 +146,8 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          question_str << add_and_trace_from( add_str: '\begin{enumerate}[label=' << @enumstyle << ']' << "\n", \
-               tr: trace_lines, name: 'enumstyle' )
+          question_str << add_and_trace_from( add_str: '\begin{' << @enumtype << '}' \
+              << @enumlabel << "\n", tr: trace_lines, name: 'enumstyle' )
           @parts.each do |p|
             p_str, p_tr = p.to_traced_s
             question_str << p_str
@@ -133,7 +155,8 @@ module Hwk
               trace_lines << ptr
             end
           end
-          question_str << add_and_trace_from( add_str: '\end{enumerate}' << "\n", tr: trace_lines )
+          question_str << add_and_trace_from( add_str: '\end{' << @enumtype <<  '}' \
+              << "\n", tr: trace_lines )
         end
 
         question_str << add_and_trace_from( add_str: '\end{homeworkProblem}' << "\n", tr: trace_lines )

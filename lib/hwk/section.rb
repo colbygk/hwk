@@ -8,7 +8,8 @@ module Hwk
 
   class Section < Includable
     attr_accessor :im_a_part
-    [:prefix, :suffix, :enumstyle, :title, :text,:solution, :parts].each do |m|
+    [:prefix, :suffix, :enumtype, :itemizelabel, :enumlabel, :enumstyle, :title, :text, \
+      :solution, :parts].each do |m|
       self.class_eval( %Q\
         def #{m}(*param,&block)
 
@@ -28,6 +29,9 @@ module Hwk
 
         @prefix = ''
         @enumstyle = '\alph'
+        @enumtype = 'enumerate'
+        @enumlabel = "[label=#{@enumstyle}]"
+        @itemizelabel = ''
         @im_a_part = nil
         call_stack = caller(2)
         if call_stack
@@ -38,6 +42,18 @@ module Hwk
         @text = s[1..-1].join unless s[1..-1].nil?
         @parts = []
         (block.arity < 1 ?  (instance_eval &block) : block.call(self)) if block_given?
+      end
+
+      def construct_enuminfo
+
+        if @enumtype == 'enumerate'
+          @enumlabel = "[label=#{@enumstyle}]"
+          @itemizelabel = ''
+        elsif @enumtype == 'itemize'
+          @enumlabel = ''
+          @itemizelabel = "[#{@itemizelabel}]"
+        end
+          
       end
 
       def newpage( *s, &block )
@@ -60,7 +76,8 @@ module Hwk
         section_str = ''
         trace_lines = []
 
-        section_str << add_and_trace_from( add_str: @prefix.to_s << '\item ', tr: trace_lines, name: 'prefix' )
+        section_str << add_and_trace_from( add_str: @prefix.to_s << '\item' << @itemizelabel, \
+            tr: trace_lines, name: 'prefix' )
         section_str << add_and_trace_from( add_str: @text.to_s << "\n\\par\n", tr: trace_lines, name: 'text' )
 
         if ( @solution.to_s.length > 0 )
@@ -69,8 +86,9 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          section_str << add_and_trace_from( add_str: '\begin{enumerate}[label=' <<  @enumstyle << ']', tr: trace_lines,
-                                             name: 'enumstyle' )
+          construct_enuminfo
+          section_str << add_and_trace_from( add_str: '\begin{' << @enumtype << '}' << @enumlabel,\
+              tr: trace_lines, name: 'enumstyle' )
           @parts.each do |p|
             s_str, s_tr = p.to_traced_s
             section_str << s_str
@@ -79,7 +97,8 @@ module Hwk
             end
           end
 
-          section_str << add_and_trace_from( add_str: '\end{enumerate}' << "\n", tr: trace_lines )
+          section_str << add_and_trace_from( add_str: '\end{' << @enumtype << '}' \
+              << "\n", tr: trace_lines )
         end
 
         section_str << add_and_trace_from( add_str: @suffix.to_s, tr: trace_lines, name: 'suffix' )
@@ -102,8 +121,9 @@ module Hwk
         end
 
         if ( @parts && @parts.length > 0 )
-          section_str << add_and_trace_from( add_str: '\begin{enumerate}[label=' << @enumstyle << ']' << "\n",
-              tr: trace_lines, name: 'enumstyle' )
+          construct_enuminfo
+          section_str << add_and_trace_from( add_str: '\begin{' << @enumtype << '}' \
+              << @enumlabel << "\n", tr: trace_lines, name: 'enumstyle' )
 
           @parts.each do |p|
             s_str, s_tr = p.to_traced_s
@@ -113,7 +133,8 @@ module Hwk
             end
           end
 
-          section_str << add_and_trace_from( add_str: '\end{enumerate}' << "\n", tr: trace_lines )
+          section_str << add_and_trace_from( add_str: '\end{' << @enumtype << '}' \
+              << "\n", tr: trace_lines )
         end
 
         section_str << add_and_trace_from( add_str: '\end{homeworkSection}' << "\n" , tr: trace_lines )
