@@ -39,6 +39,7 @@
 \usepackage{float}
 \usepackage{wrapfig}
 \usepackage{pgfplots}
+\usepackage{tikz}
 \usepgfplotslibrary{external} 
 \tikzexternalize
 \pgfplotsset{compat=newest}
@@ -88,6 +89,7 @@ HWK_LANGUAGE_CONFIGS_HWK
  {\par$\!\aligned}
   {\endaligned$\par}
 
+
 \newcommand{\qed}{\hfill $\blacksquare$}
 \newcommand{\uanswer}[1]{\underline{\underline{#1}}}
 \newcommand{\pd}[2]{\frac{\partial #1}{\partial #2}}
@@ -95,6 +97,8 @@ HWK_LANGUAGE_CONFIGS_HWK
 
 \newcommand{\smaa}[1]{\begin{smashedalign} #1 \end{smashedalign}}
 \newcommand{\smac}[1]{\begin{center}\begin{smashedalign} #1 \end{smashedalign}\end{center}}
+\newcommand{\smeqn}[1]{\begin{equation}\begin{align}#1\end{align}\end{equation}}
+\newcommand{\mata}[2]{\left[\begin{array}{#1} #2 \end{array}\right] }
 \newcommand{\matv}[1]{\begin{vmatrix*}[r] #1 \end{vmatrix*}}
 \newcommand{\matvs}[2]{\begin{vmatrix*}[#1] #2 \end{vmatrix*}}
 \newcommand{\matb}[1]{\begin{bmatrix*}[r] #1 \end{bmatrix*}}
@@ -103,11 +107,12 @@ HWK_LANGUAGE_CONFIGS_HWK
 \newcommand{\matps}[2]{\begin{pmatrix*}[#1] #2 \end{pmatrix*}}
 \newcommand{\mats}[1]{\left[\begin{smallmatrix} #1 \end{smallmatrix}\right]}
 \newcommand{\matss}[2]{\left[\begin{smallmatrix*}[#1] #2 \end{smallmatrix*}\right]}
+\newcommand{\matsss}[1]{\begin{smallmatrix*} #1 \end{smallmatrix*}}
 \DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 \newcommand{\reals}[0]{\mathbb{R}}
 \newcommand{\integers}[0]{\mathbb{Z}}
-\newenvironment{mata}[1]{ \left(\begin{array}{@{}*{#1}{r}|r@{}} }{ \end{array} \right) }
+\newenvironment{mataOLD}[1]{ \left(\begin{array}{@{}*{#1}{r}|r@{}} }{ \end{array} \right) }
 
 
 % Header and footer for when a page split occurs within a problem environment
